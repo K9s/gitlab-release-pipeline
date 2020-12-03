@@ -1,0 +1,23 @@
+pytest+coverage:
+  extends: .base_python
+  stage: test
+  coverage: '/^TOTAL.+?(\d+\%)$/'
+  script:
+    - cd $DIR
+    - '[ -f "setup.py" ] && pip install -e . || echo "Not a python package, skipping pip install"'
+    - '[ -f "requirements.txt" ] && pip install -r requirements.txt || echo "No requirements.txt, skipping install"'
+    - pip install pytest pytest-cov
+    - echo "[run]" > .coveragerc
+    - echo "  omit = " >> .coveragerc
+    - echo "    venv/*" >> .coveragerc
+    - echo "    *setup.py" >> .coveragerc
+    - echo "    **test_*.py" >> .coveragerc
+    - pytest --junitxml=report.xml --cov . --cov-config=.coveragerc --cov-branch .
+    - coverage xml
+#    - sed -i "s=<source>.*${DIR}</source>=<source>./${DIR}</source>=g" coverage.xml
+#    - sed -i "s;filename=\";filename=\"${DIR}/;g" coverage.xml
+  artifacts:
+    when: always
+    reports:
+      junit: $DIR/report.xml
+      cobertura: $DIR/coverage.xml

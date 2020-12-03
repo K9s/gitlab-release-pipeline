@@ -1,0 +1,35 @@
+test:release:
+  extends:
+    - .test
+  stage: test
+  rules:
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+      artifacts: true
+    - job: 'build:release'
+      artifacts: true
+
+test:candidate:
+  extends:
+    - .test
+  stage: test
+  rules:
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+      artifacts: true
+    - job: 'build:candidate'
+      artifacts: true
+
+test:alpha:
+  extends:
+    - .test
+  stage: test
+  needs:
+    - job: 'get:version'
+      artifacts: true
+    - job: 'build:alpha'
+      artifacts: true
+  rules:
+    - !reference [.nonrelease_rules, rules]

@@ -1,0 +1,28 @@
+.python_static_analysis:
+  extends: .base_python
+  stage: static analysis
+  needs: []
+
+flake8:
+  extends: .python_static_analysis
+  script:
+    - cd $DIR
+    - pip install flake8
+    - flake8 --max-line-length=125 --extend-exclude=*.pyc,venv/* .
+
+tox:
+  extends: .python_static_analysis
+  script:
+    - cd $DIR
+    - pip install tox
+    - tox .
+  allow_failure: true
+
+pylint:
+  extends: .python_static_analysis
+  script:
+    - cd $DIR
+    - '[ -f "../.pylintrc" ] && cp ../.pylintrc .'
+    - pip install pylint
+    - pylint --rcfile=.pylintrc $(find -type f -name "*.py" ! -path "**/venv/**")
+  allow_failure: true

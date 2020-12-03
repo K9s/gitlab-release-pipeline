@@ -1,0 +1,57 @@
+.docker_base:
+  image: docker:20.10.14
+  cache: {}
+  services:
+    - docker:20.10.14-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2376/
+
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    DOCKER_DRIVER: overlay2
+
+    DOCKER_BUILDKIT: 1
+    BUILDKIT_PROGRESS: plain
+  before_script:
+    - until docker info; do sleep 2; done
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login -u "$CI_DEPENDENCY_PROXY_USER" --password-stdin "$CI_DEPENDENCY_PROXY_SERVER"
+
+.build:
+  extends:
+    - .docker_base
+  script:
+    - BASE_IMAGE=$CI_REGISTRY_IMAGE/$APP
+    - BUILD_IMAGE=$BASE_IMAGE:build-$CI_PIPELINE_IID-$CI_COMMIT_SHORT_SHA
+    - cd $DIR
+    - CACHE_IMAGE=$BASE_IMAGE:build-cache
+    - docker pull $CACHE_IMAGE || true
+    - docker build --cache-from $CACHE_IMAGE --tag $CACHE_IMAGE --tag $BUILD_IMAGE --build-arg BUILDKIT_INLINE_CACHE=1 .
+    - docker push $CACHE_IMAGE
+    - docker push $BUILD_IMAGE
+    - echo "DOCKER_IMAGE=$BUILD_IMAGE" > $CI_PROJECT_DIR/docker.env
+  after_script:
+    - echo "PRE_RELEASE=$PRE_RELEASE" > $CI_PROJECT_DIR/build.env
+    - cat $CI_PROJECT_DIR/docker.env >> $CI_PROJECT_DIR/build.env
+    - cat $CI_PROJECT_DIR/build.env
+
+.publish:
+  extends:
+    - .docker_base
+  script:
+    - SOURCE_IMAGE=$DOCKER_IMAGE
+    - docker pull $SOURCE_IMAGE
+    - IMAGE_TAG=$CI_REGISTRY_IMAGE/$APP:$VERSION$PRE_RELEASE-$CI_COMMIT_SHORT_SHA
+    - docker tag $SOURCE_IMAGE $IMAGE_TAG
+    - docker push $IMAGE_TAG
+    - docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:latest
+    - docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:$VERSION
+    - docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:$VERSION_MINOR
+    - docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:$VERSION_MAJOR
+    - '[[ -z "${PRE_RELEASE}" ]] && ( 
+          docker push $CI_REGISTRY_IMAGE/$APP:latest && 
+          docker push $CI_REGISTRY_IMAGE/$APP:$VERSION && 
+          docker push $CI_REGISTRY_IMAGE/$APP:$VERSION_MINOR && 
+          docker push $CI_REGISTRY_IMAGE/$APP:$VERSION_MAJOR ) 
+          || echo "Not release, not pushing latest or version tags"'

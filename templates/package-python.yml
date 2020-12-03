@@ -1,0 +1,22 @@
+include:
+  - local: 'templates/core.yml'
+  - local: 'templates/bases/python.yml'
+
+.build:
+  extends: .base_python
+  script:
+    - cd $DIR
+    - python setup.py sdist bdist_wheel
+    - mv dist/ $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - dist/*
+
+.publish:
+  extends: .base_python
+  script:
+    - pip install twine==4.0
+    - keyring --disable
+    - '[[ -z "${PRE_RELEASE}" ]] && REPOSITORY=gitlab-central || REPOSITORY=gitlab-project'
+    - echo "Using repository $REPOSITORY"
+    - TWINE_NON_INTERACTIVE=True TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository ${REPOSITORY} ${CI_PROJECT_DIR}/dist/* --verbose

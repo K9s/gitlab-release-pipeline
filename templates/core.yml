@@ -1,0 +1,58 @@
+include:
+  - local: 'core/stages.yml'
+
+  - local: 'core/setup.yml'
+  - local: 'core/static-analysis.yml'
+  - local: 'core/semver.yml'
+  - local: 'core/build.yml'
+  - local: 'core/test.yml'
+  - local: 'core/publish.yml'
+  - local: 'core/deploy.yml'
+  # - local: 'core/accessibility.yml'
+  - local: 'core/integration.yml'
+
+  # Gitlab Provided
+  - local: 'core/code-quality.yml'
+  - local: 'core/security.yml'
+
+
+# Built-in extension points
+.lint:
+  script:
+    - 'echo "no lint config defined Add .lint to pipeline to define."'
+
+.build:
+  script:
+    - 'echo "no build config defined Add .build to pipeline to define."'
+
+.test:
+  script:
+    - 'echo "no test config defined Add .test to pipeline to define."'
+
+.integration:
+  script:
+    - 'echo "no integration config defined Add .integration to pipeline to define."'
+
+.publish:
+  script:
+    - 'echo "no publish config defined Add .publish to pipeline to define."'
+
+.deploy:
+  script:
+    - 'echo "no deploy config defined Add .deploy to pipeline to define."'
+
+.deploy_stop:
+  script:
+    - 'echo "no deploy stop config defined Add .deploy_stop to pipeline to define."'
+
+variables:
+  # User to
+  #RELEASE_PASS:
+  #RELEASE_USER:
+
+  DIR: src
+  #APP:
+  #ENABLE_CONTINUOUS_DEPLOYMENT:
+  #PARENT_PIPELINE_ID:
+  #SETUP_ARTIFACT_REF:
+  #SETUP_ARTIFACT_JOB:

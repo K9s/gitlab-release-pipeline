@@ -1,0 +1,21 @@
+gate:publish:candidate:
+  extends:
+    - .gate_base
+  stage: prerelease publish
+  when: on_success
+  rules:
+    - !reference [.release_rules, rules]
+
+publish:candidate:
+  extends:
+    - .publish
+  stage: prerelease publish
+  rules:
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+      artifacts: true
+    - job: 'build:candidate'
+      artifacts: true
+    - job: 'gate:publish:candidate'
+      artifacts: true

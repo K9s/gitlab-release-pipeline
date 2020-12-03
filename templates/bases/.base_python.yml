@@ -1,0 +1,14 @@
+.base_python:
+  image: python:3.10.4
+  cache:
+    paths:
+      - .cache/pip
+      - venv/$APP
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  before_script:
+    - pip install virtualenv
+    - virtualenv venv/$APP
+    - source venv/$APP/bin/activate
+    - which python
+    - ./config.sh || true

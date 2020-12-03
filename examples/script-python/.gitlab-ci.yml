@@ -1,0 +1,4 @@
+include:
+  - project: ci/gitlab
+    ref: $CI_COMMIT_REF_NAME
+    file: templates/script-python.yml

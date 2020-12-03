@@ -1,0 +1,42 @@
+.build_base:
+  stage: build
+  after_script:
+    - echo "PRE_RELEASE=$PRE_RELEASE" > $CI_PROJECT_DIR/build.env
+    - cat $CI_PROJECT_DIR/build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  needs:
+    - job: 'get:version'
+      artifacts: true
+  interruptible: true
+
+build:release:
+  extends:
+    - .build_base
+    - .build
+  variables:
+    PRE_RELEASE: ''
+  rules:
+    - !reference [.release_rules, rules]
+
+build:candidate:
+  extends:
+    - .build_base
+    - .build
+  variables:
+    PRE_RELEASE: rc$CI_PIPELINE_IID
+  rules:
+    - !reference [.release_rules, rules]
+
+build:alpha:
+  extends:
+    - .build_base
+    - .build
+  variables:
+    PRE_RELEASE: a$CI_PIPELINE_IID
+  rules:
+    - !reference [.nonrelease_rules, rules]
+  needs:
+    - job: 'get:version'
+      artifacts: true

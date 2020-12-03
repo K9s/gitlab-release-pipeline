@@ -1,0 +1,21 @@
+gate:publish:alpha:
+  extends:
+    - .gate_base
+  stage: prerelease publish
+  when: on_success
+  rules:
+    - !reference [.nonrelease_rules, rules]
+
+publish:alpha:
+  extends:
+    - .publish
+  stage: prerelease publish
+  needs:
+    - job: 'get:version'
+      artifacts: true
+    - job: 'build:alpha'
+      artifacts: true
+    - job: 'gate:publish:alpha'
+      artifacts: true
+  rules:
+    - !reference [.nonrelease_rules, rules]

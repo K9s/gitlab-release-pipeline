@@ -1,0 +1,3 @@
+include:
+  - local: 'templates/core.yml'
+  - local: 'template/bases/docker.yml'

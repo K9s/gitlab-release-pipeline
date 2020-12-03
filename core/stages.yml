@@ -1,0 +1,13 @@
+stages:
+  - setup
+  - static analysis
+  - semver
+  - build
+  - test
+  - prerelease publish
+  - preprod deploy
+  - accessibility
+  - integration
+  - prod publish
+  - prod deploy
+  - wrapup

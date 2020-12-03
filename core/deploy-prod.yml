@@ -1,0 +1,38 @@
+gate:prod:deploy:
+  extends:
+    - .gate_base
+  stage: prod deploy
+  rules:
+    - if: $ENABLE_CONTINUOUS_DEPLOYMENT
+      when: on_success
+    - !reference [.release_rules, rules]
+
+deploy:prod:
+  extends:
+    - .deploy_base
+    - .deploy
+  stage: prod deploy
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    deployment_tier: production
+    name: $APP-prod
+    on_stop: deploy:prod:stop
+  rules:
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+    - job: 'gate:prod:deploy'
+
+deploy:prod:stop:
+  extends:
+    - .deploy_base
+    - .deploy_stop
+  stage: prod deploy
+  environment:
+    deployment_tier: production
+    name: $APP-prod
+    action: stop
+  rules:
+    - !reference [ .release_rules, rules ]
+  when: manual

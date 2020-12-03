@@ -1,0 +1,8 @@
+include:
+  - local: core/deploy-dev.yml
+  - local: core/deploy-preprod.yml
+  - local: core/deploy-prod.yml
+
+.deploy_base:
+  variables:
+    GIT_STRATEGY: none

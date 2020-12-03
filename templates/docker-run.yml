@@ -1,0 +1,17 @@
+include:
+  - local: 'templates/core.yml'
+  - local: 'base-docker.yml'
+
+.build:
+  extends:
+    - .docker_base
+  script:
+    - export SOURCE_IMAGE=$CI_REGISTRY_IMAGE/$DIR:$CI_COMMIT_SHORT_SHA
+    - docker pull $SOURCE_IMAGE
+    - sh run.sh || true
+
+.publish:
+  extends:
+    - .docker_base
+  script:
+    - echo "Nothing to publish on docker-run pipeline

@@ -1,0 +1,100 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_MESSAGE =~ /Incrementing working version of.*to \d*.\d*.\d*. Prior version was \d*.\d*.\d*/
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - .gitlab-ci.yml
+        - .config/*
+        - version.py
+        - release.sh
+        - core/**/*
+        - templates/**/*
+
+include:
+  - local: core/stages.yml
+  - local: core/.setup_base.yml
+  - local: templates/bases/.base_python.yml
+  - local: templates/python/static-analysis.yml
+    variables:
+      APP: release-scripts
+
+variables:
+  DIR: .
+  CENTRAL_REGISTRY_PROJECT_ID: $CI_PROJECT_ID
+  CI_TEMPLATE_PROJECT_ID: $CI_PROJECT_ID
+  ENABLE_CONTINUOUS_DEPLOYMENT: 'true'
+  PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+
+.pipeline_integration_base:
+  stage: integration
+  resource_group: core-release-pipeline
+  needs: [ 'publish:scripts' ]
+
+core:
+  extends:
+    - .pipeline_integration_base
+  variables:
+    DIR: examples/core/src
+  trigger:
+    include:
+      - local: examples/core/.gitlab-ci.yml
+    strategy: depend
+
+docker-python:
+  extends:
+    - .pipeline_integration_base
+  variables:
+    DIR: examples/docker-python/src
+  trigger:
+    include:
+      - local: examples/docker-python/.gitlab-ci.yml
+    strategy: depend
+
+package-python:
+  extends:
+    - .pipeline_integration_base
+  variables:
+    DIR: examples/package-python/src
+  trigger:
+    include:
+     - local: examples/package-python/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: $EXTENDED_PIPELINE_INTEGRATIONS
+
+script-python:
+  extends:
+    - .pipeline_integration_base
+  variables:
+    DIR: examples/script-python/src
+  trigger:
+    include:
+      - local: examples/script-python/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: $EXTENDED_PIPELINE_INTEGRATIONS
+
+publish:scripts:
+  stage: preprod deploy
+  script:
+    - echo 'Publishing release scripts'
+    - echo "CI_COMMIT_SHA=$CI_COMMIT_SHA" > .config/pipeline.release
+    - echo "CI_PIPELINE_URL=$CI_PIPELINE_URL" >> .config/pipeline.release
+  artifacts:
+    paths:
+      - .config/*
+      - version.py
+      - release.sh
+
+set:stable:tag:
+  extends: .setup_base
+  stage: wrapup
+  script:
+    - ./release.sh prep
+    - git tag -f stable
+    - git push --delete origin stable || true
+    - git push -f origin stable
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH

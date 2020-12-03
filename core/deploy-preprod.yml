@@ -1,0 +1,36 @@
+gate:preprod:deploy:
+  extends:
+    - .gate_base
+  stage: preprod deploy
+  rules:
+    - !reference [.release_rules, rules]
+  when: on_success
+
+deploy:preprod:
+  extends:
+    - .deploy_base
+    - .deploy
+  stage: preprod deploy
+  environment:
+    deployment_tier: testing
+    name: $APP-preprod
+    on_stop: deploy:preprod:stop
+    auto_stop_in: 1 week
+  rules:
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+    - job: 'gate:preprod:deploy'
+
+deploy:preprod:stop:
+  extends:
+    - .deploy_base
+    - .deploy_stop
+  stage: preprod deploy
+  environment:
+    deployment_tier: testing
+    name: $APP-preprod
+    action: stop
+  rules:
+    - !reference [ .release_rules, rules ]
+  when: manual

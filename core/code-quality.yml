@@ -1,0 +1,47 @@
+include:
+  - template: Code-Quality.gitlab-ci.yml
+
+code_quality:
+  image: docker:20.10.14
+  services:
+    - docker:20.10.14-dind
+  variables:
+    SOURCE_CODE: $DIR
+    CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:0.85.26"
+
+    DOCKER_HOST: tcp://docker:2376/
+
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    DOCKER_DRIVER: overlay2
+
+    DOCKER_BUILDKIT: 1
+    BUILDKIT_PROGRESS: plain
+  artifacts:
+    paths: [gl-code-quality-report.json]
+  before_script:
+    - |
+      cat /etc/resolv.conf | sed -r "s/^(search.*|options.*)/#\1/" > /tmp/resolv && cat /tmp/resolv > /etc/resolv.conf
+    - until docker info; do sleep 2; done
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - apk update
+    - apk add bash
+    - $CI_PROJECT_DIR/codequality-cache.sh
+  needs:
+    - job: 'get:version'
+      artifacts: true
+      optional: true
+  dependencies:
+    - 'get:version'
+
+# The following /should work/ but cannot see https://gitlab.com/gitlab-org/ci-cd/codequality/-/merge_requests/37
+
+#code_quality:
+#  variables:
+#    SOURCE_CODE: $CI_PROJECT_DIR/$DIR
+#    CODECLIMATE_PREFIX: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/
+#  artifacts:
+#    paths: [gl-code-quality-report.json]
+#  before_script:
+#    - echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login -u "$CI_DEPENDENCY_PROXY_USER" --password-stdin "$CI_DEPENDENCY_PROXY_SERVER"
