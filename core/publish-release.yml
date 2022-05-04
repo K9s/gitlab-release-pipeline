@@ -4,14 +4,13 @@ gate:prod:publish:
   stage: prod publish
   script:
     - cd $DIR
-    - '[[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped, not doing release" && exit 1; }'
+    - '[[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped to ${VERSION_BUMPED}, not doing release" && exit 1; }'
     - echo "Expected to release $VERSION...checking for issues..."
-    - $CI_PROJECT_DIR/version.py get-base-version
+    - $CI_PROJECT_DIR/release.sh check
     - echo "Release is a GO!"
   when: manual
   allow_failure: false
   interruptible: true
-  resource_group: $APP-release
   rules:
     - if: $ENABLE_CONTINUOUS_DEPLOYMENT
       when: on_success

@@ -1,13 +1,11 @@
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH
-    - if: $CI_COMMIT_MESSAGE =~ /Incrementing working version of.*to \d*.\d*.\d*. Prior version was \d*.\d*.\d*/
-      when: never
     - if: $CI_COMMIT_BRANCH
       changes:
         - .gitlab-ci.yml
         - .config/*
-        - version.py
+        - semver.py
         - release.sh
         - core/**/*
         - templates/**/*
@@ -29,7 +27,6 @@ variables:
 
 .pipeline_integration_base:
   stage: integration
-  resource_group: core-release-pipeline
   needs: [ 'publish:scripts' ]
 
 core:
@@ -85,7 +82,7 @@ publish:scripts:
   artifacts:
     paths:
       - .config/*
-      - version.py
+      - semver.py
       - release.sh
 
 set:stable:tag:

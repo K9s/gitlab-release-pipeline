@@ -13,11 +13,12 @@ deploy:preprod:
   stage: preprod deploy
   environment:
     deployment_tier: testing
-    name: $APP-preprod
+    name: preprod
     on_stop: deploy:preprod:stop
     auto_stop_in: 1 week
   rules:
     - !reference [.release_rules, rules]
+  resource_group: global-preprod-deploy
   needs:
     - job: 'get:version'
     - job: 'gate:preprod:deploy'
@@ -29,8 +30,11 @@ deploy:preprod:stop:
   stage: preprod deploy
   environment:
     deployment_tier: testing
-    name: $APP-preprod
+    name: preprod
     action: stop
   rules:
-    - !reference [ .release_rules, rules ]
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+    - job: 'deploy:preprod'
   when: manual

@@ -7,8 +7,6 @@ commit=${CI_COMMIT_SHA:-$(git rev-parse HEAD)}
 branch=${ALLOWED_RELEASE_BRANCH:-$CI_DEFAULT_BRANCH}
 project_dir=${CI_PROJECT_DIR:-$(pwd)}
 
-version_file=VERSION
-
 if ! git branch -a --contains "${commit}" | grep -e "^[* ]*remotes/origin/${branch}\$"
 then
   echo -e "###\n### Not on ${branch}. Only the branch defined by ALLOWED_RELEASE_BRANCH can be released.\n###"
@@ -44,30 +42,23 @@ else
 fi
 
 git checkout "${branch}"
+git fetch || true
+git fetch --tags || true
 
+version=$("$project_dir"/semver.py get)
 if [[ $release_type == 'prep' ]]; then
-  version_current=$("$project_dir"/version.py get)
-
-  DESCRIPTION="Release version ${version_current} of ${APP}"
-  echo "TAG=${APP}-${version_current}" > release.env
-  echo "VERSION=${version_current}" >> release.env
-  echo "VERSION_MINOR=$("$project_dir"/version.py get-minor)" >> release.env
-  echo "VERSION_MAJOR=$("$project_dir"/version.py get-major)" >> release.env
+  DESCRIPTION="Release version ${version} of ${APP}"
+  echo "TAG=${APP}-${version}" > release.env
+  echo "VERSION=${version}" >> release.env
+  echo "CURRENT_VERSION=$("$project_dir"/semver.py get-current)" >> release.env
+  echo "VERSION_MINOR=$("$project_dir"/semver.py get-minor)" >> release.env
+  echo "VERSION_MAJOR=$("$project_dir"/semver.py get-major)" >> release.env
   echo "DESCRIPTION='${DESCRIPTION}'" >> release.env
   echo "APP=${APP}" >> release.env
   echo "----------------release.env--------------------"
   cat release.env
   echo "-----------------------------------------------"
-else
-  version_current=$("$project_dir"/version.py get-ignore-version-match)
-
-  echo "Bumping version in current branch"
-  next_working_version=$("$project_dir"/version.py inc-"${release_type}")
-
-  echo "Pushing new version to ${branch}"
-  git add ${version_file}
-  git commit -m "Incrementing working version of ${APP} to ${next_working_version}. Prior version was ${version_current}"
-  git push origin "${branch}"
-
-  echo "Version $("$project_dir"/version.py get) pushed to ${branch}. Prior version was ${version_current}."
+elif [[ $release_type == 'check' ]]; then
+  current_version=$("$project_dir"/semver.py get-current)
+  echo "Checking... Current version: ${current_version}, next version: ${version}"
 fi

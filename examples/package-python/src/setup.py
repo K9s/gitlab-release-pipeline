@@ -3,10 +3,7 @@ import os
 
 from setuptools import setup, find_namespace_packages
 
-try:
-    version = f"{os.getenv('VERSION')}{os.getenv('PRE_RELEASE')}"
-except ImportError:
-    version = open('VERSION').read()
+version = f"{os.getenv('VERSION')}{os.getenv('PRE_RELEASE')}"
 
 install_requires = ['PyYAML == 5.3.1',
                     'timeloop==1.0.2']

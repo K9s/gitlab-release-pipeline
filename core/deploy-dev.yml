@@ -13,11 +13,12 @@ deploy:dev:
   stage: preprod deploy
   environment:
     deployment_tier: development
-    name: $APP-dev
+    name: dev
     on_stop: deploy:dev:stop
     auto_stop_in: 1 hour
   rules:
     - !reference [.nonrelease_rules, rules]
+  resource_group: global-dev-deploy
   needs:
     - job: 'get:version'
     - job: 'gate:dev:deploy'
@@ -29,8 +30,11 @@ deploy:dev:stop:
   stage: preprod deploy
   environment:
     deployment_tier: development
-    name: $APP-dev
+    name: dev
     action: stop
   rules:
-    - !reference [ .nonrelease_rules, rules ]
+    - !reference [.nonrelease_rules, rules]
+  needs:
+    - job: 'get:version'
+    - job: 'deploy:dev'
   when: manual

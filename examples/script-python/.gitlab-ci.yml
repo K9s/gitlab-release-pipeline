@@ -1,4 +1,4 @@
 include:
-  - project: ci/gitlab
+  - project: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
     ref: $CI_COMMIT_REF_NAME
     file: templates/script-python.yml

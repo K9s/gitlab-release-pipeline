@@ -8,7 +8,7 @@ flake8:
   script:
     - cd $DIR
     - pip install flake8
-    - flake8 --max-line-length=125 --extend-exclude=*.pyc,venv/* .
+    - flake8 --max-line-length=140 --extend-exclude=*.pyc,venv/* .
 
 tox:
   extends: .python_static_analysis

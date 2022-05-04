@@ -1,6 +1,6 @@
 .gate_base:
   script:
-    - echo 'Will $CI_JOB_NAME'
+    - echo "Will $CI_JOB_NAME"
   allow_failure: false
   when: manual
   interruptible: true

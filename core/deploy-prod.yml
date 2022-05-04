@@ -16,10 +16,11 @@ deploy:prod:
     GIT_STRATEGY: none
   environment:
     deployment_tier: production
-    name: $APP-prod
+    name: prod
     on_stop: deploy:prod:stop
   rules:
     - !reference [.release_rules, rules]
+  resource_group: global-prod-deploy
   needs:
     - job: 'get:version'
     - job: 'gate:prod:deploy'
@@ -31,8 +32,11 @@ deploy:prod:stop:
   stage: prod deploy
   environment:
     deployment_tier: production
-    name: $APP-prod
+    name: prod
     action: stop
   rules:
-    - !reference [ .release_rules, rules ]
+    - !reference [.release_rules, rules]
+  needs:
+    - job: 'get:version'
+    - job: 'deploy:prod'
   when: manual
