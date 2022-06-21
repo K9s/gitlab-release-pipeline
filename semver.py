@@ -244,6 +244,9 @@ if __name__ == "__main__":
 
     FULL_VERSION = os.getenv('VERSION')
 
+    if FULL_VERSION == "$VERSION":
+        FULL_VERSION = None
+
     if FULL_VERSION:
         FULL_VERSION = f'{FULL_VERSION}+{semver.build}'
 

@@ -1,0 +1,12 @@
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+variables:
+  RP_ENABLE_CONTINUOUS_DEPLOYMENT: 'true'
+  RP_DEPLOYS_DISABLED: 'true'
+
+include:
+  - project: $RP_TEMPLATE_PROJECT_NAMESPACE/$RP_TEMPLATE_PROJECT_NAME
+    ref: stable
+    file: templates/docker-build.yml

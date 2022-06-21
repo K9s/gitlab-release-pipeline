@@ -5,6 +5,8 @@ workflow:
       changes:
         - .gitlab-ci.yml
         - .config/*
+        - Dockerfile
+        - requirements.txt
         - semver.py
         - release.sh
         - core/**/*
@@ -36,7 +38,28 @@ variables:
 
 .pipeline_integration_base:
   stage: integration
-  needs: [ 'publish:scripts' ]
+  needs:
+    - job: 'publish:scripts'
+    - job: 'base-image'
+      optional: true
+
+base-image:
+  stage: build
+  variables:
+    APP: base-image
+    DIR: .
+    VERSION: $VERSION
+  trigger:
+    include:
+      - local: .gitlab-ci-base-image.yml
+    strategy: depend
+  needs:
+    - 'publish:scripts'
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - Dockerfile
+        - requirements.txt
 
 core:
   extends:
@@ -91,7 +114,7 @@ script-python:
     - if: $EXTENDED_PIPELINE_INTEGRATIONS
 
 publish:scripts:
-  stage: preprod
+  stage: prebuild
   script:
     - echo 'Publishing release scripts'
     - echo "CI_COMMIT_SHA=$CI_COMMIT_SHA" > .config/pipeline.release
