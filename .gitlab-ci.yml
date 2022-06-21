@@ -44,6 +44,7 @@ core:
   variables:
     APP: core
     DIR: validation_pipelines/core/src
+    VERSION: $VERSION
   trigger:
     include:
       - local: validation_pipelines/core/.gitlab-ci.yml
@@ -55,6 +56,7 @@ docker-python:
   variables:
     APP: docker-python
     DIR: validation_pipelines/docker-python/src
+    VERSION: $VERSION
   trigger:
     include:
       - local: validation_pipelines/docker-python/.gitlab-ci.yml
@@ -66,6 +68,7 @@ package-python:
   variables:
     APP: package-python
     DIR: validation_pipelines/package-python/src
+    VERSION: $VERSION
   trigger:
     include:
      - local: validation_pipelines/package-python/.gitlab-ci.yml
@@ -79,6 +82,7 @@ script-python:
   variables:
     APP: script-python
     DIR: validation_pipelines/script-python/src
+    VERSION: $VERSION
   trigger:
     include:
       - local: validation_pipelines/script-python/.gitlab-ci.yml
