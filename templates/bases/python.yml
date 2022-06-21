@@ -1,4 +1,4 @@
 include:
-  - local: 'templates/bases/.base_python.yml'
-  - local: 'templates/python/static-analysis.yml'
-  - local: 'templates/python/pytest.yml'
+  - local: 'templates/bases/python/.python_base.yml'
+  - local: 'templates/bases/python/static.yml'
+  - local: 'templates/bases/python/test.yml'

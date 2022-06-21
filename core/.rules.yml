@@ -3,8 +3,10 @@
     - if: $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
     - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_REF_NAME
+      when: never
 
-.nonrelease_rules:
+.non-release_rules:
   rules:
     - if: $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
       when: never

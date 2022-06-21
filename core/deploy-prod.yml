@@ -1,42 +1,57 @@
-gate:prod:deploy:
+gate:prod:
   extends:
     - .gate_base
-  stage: prod deploy
+  stage: prod
   rules:
-    - if: $ENABLE_CONTINUOUS_DEPLOYMENT
+    - if: $RP_DEPLOYS_DISABLED == 'true' || $RP_PRODUCTION_DEPLOY_DISABLED == 'true'
+      when: never
+    - if: $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true' && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: on_success
     - !reference [.release_rules, rules]
+
+.deploy:prod:
+  environment:
+    deployment_tier: production
+    name: prod
+    on_stop: deploy:prod:stop
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'gate:prod'
 
 deploy:prod:
   extends:
     - .deploy_base
     - .deploy
-  stage: prod deploy
+    - .deploy:prod
+    - .deploy:override
+  stage: prod
   variables:
     GIT_STRATEGY: none
+  rules:
+    - if: $RP_DEPLOYS_DISABLED == 'true' || $RP_PRODUCTION_DEPLOY_DISABLED == 'true'
+      when: never
+    - !reference [.release_rules, rules]
+  resource_group: global-prod-deploy
+
+.deploy:prod:stop:
   environment:
     deployment_tier: production
     name: prod
-    on_stop: deploy:prod:stop
-  rules:
-    - !reference [.release_rules, rules]
-  resource_group: global-prod-deploy
-  needs:
-    - job: 'get:version'
-    - job: 'gate:prod:deploy'
+    action: stop
 
 deploy:prod:stop:
   extends:
     - .deploy_base
     - .deploy_stop
-  stage: prod deploy
-  environment:
-    deployment_tier: production
-    name: prod
-    action: stop
+    - .deploy:prod:stop
+  stage: prod
   rules:
+    - if: $RP_DEPLOYS_DISABLED == 'true' || $RP_PRODUCTION_DEPLOY_DISABLED == 'true'
+      when: never
     - !reference [.release_rules, rules]
   needs:
     - job: 'get:version'
+      optional: true
     - job: 'deploy:prod'
   when: manual

@@ -12,18 +12,27 @@ workflow:
 
 include:
   - local: core/stages.yml
-  - local: core/.setup_base.yml
-  - local: templates/bases/.base_python.yml
-  - local: templates/python/static-analysis.yml
-    variables:
-      APP: release-scripts
+  - local: core/.rp_base.yml
+  - local: core/.rules.yml
+#  - local: core/test.yml
+  - local: templates/bases/python.yml
+
+default:
+  tags:
+   - dind-nosock
+
+.base:
+  extends:
+    - .rp_base
 
 variables:
+  APP: release-scripts
   DIR: .
-  CENTRAL_REGISTRY_PROJECT_ID: $CI_PROJECT_ID
-  CI_TEMPLATE_PROJECT_ID: $CI_PROJECT_ID
-  ENABLE_CONTINUOUS_DEPLOYMENT: 'true'
-  PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  RP_TEMPLATE_PROJECT_ID: $CI_PROJECT_ID
+  RP_ENABLE_CONTINUOUS_DEPLOYMENT: 'true'
+  RP_PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  EXTENDED_PIPELINE_INTEGRATIONS: 'true'
+  RP_IMAGE_TAG: $RP_IMAGE_TAG
 
 .pipeline_integration_base:
   stage: integration
@@ -33,30 +42,33 @@ core:
   extends:
     - .pipeline_integration_base
   variables:
-    DIR: examples/core/src
+    APP: core
+    DIR: validation_pipelines/core/src
   trigger:
     include:
-      - local: examples/core/.gitlab-ci.yml
+      - local: validation_pipelines/core/.gitlab-ci.yml
     strategy: depend
 
 docker-python:
   extends:
     - .pipeline_integration_base
   variables:
-    DIR: examples/docker-python/src
+    APP: docker-python
+    DIR: validation_pipelines/docker-python/src
   trigger:
     include:
-      - local: examples/docker-python/.gitlab-ci.yml
+      - local: validation_pipelines/docker-python/.gitlab-ci.yml
     strategy: depend
 
 package-python:
   extends:
     - .pipeline_integration_base
   variables:
-    DIR: examples/package-python/src
+    APP: package-python
+    DIR: validation_pipelines/package-python/src
   trigger:
     include:
-     - local: examples/package-python/.gitlab-ci.yml
+     - local: validation_pipelines/package-python/.gitlab-ci.yml
     strategy: depend
   rules:
     - if: $EXTENDED_PIPELINE_INTEGRATIONS
@@ -65,16 +77,17 @@ script-python:
   extends:
     - .pipeline_integration_base
   variables:
-    DIR: examples/script-python/src
+    APP: script-python
+    DIR: validation_pipelines/script-python/src
   trigger:
     include:
-      - local: examples/script-python/.gitlab-ci.yml
+      - local: validation_pipelines/script-python/.gitlab-ci.yml
     strategy: depend
   rules:
     - if: $EXTENDED_PIPELINE_INTEGRATIONS
 
 publish:scripts:
-  stage: preprod deploy
+  stage: preprod
   script:
     - echo 'Publishing release scripts'
     - echo "CI_COMMIT_SHA=$CI_COMMIT_SHA" > .config/pipeline.release
@@ -86,12 +99,13 @@ publish:scripts:
       - release.sh
 
 set:stable:tag:
-  extends: .setup_base
-  stage: wrapup
-  script:
-    - ./release.sh prep
-    - git tag -f stable
-    - git push --delete origin stable || true
-    - git push -f origin stable
+  extends: .rp_base
+  stage: postrelease
+  script: |
+    #### Setting stable tag ####
+    ./release.sh prep
+    git tag -f stable
+    git push --delete origin stable || true
+    git push -f origin stable
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH

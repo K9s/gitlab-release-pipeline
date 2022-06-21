@@ -1,0 +1,7 @@
+.base:
+  image: 'ubuntu:20.04'
+  cache:
+    key: $APP
+  artifacts:
+    reports:
+      dotenv: rp.env

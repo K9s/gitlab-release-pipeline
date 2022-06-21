@@ -1,0 +1,4 @@
+.rp_base:
+  image: $RP_BASE_IMAGE:$RP_IMAGE_TAG
+  variables:
+    GIT_DEPTH: 0

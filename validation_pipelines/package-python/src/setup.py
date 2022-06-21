@@ -3,12 +3,12 @@ import os
 
 from setuptools import setup, find_namespace_packages
 
-version = f"{os.getenv('VERSION')}{os.getenv('PRE_RELEASE')}"
+version = os.getenv('SEMVER')
 
 install_requires = ['PyYAML == 5.3.1',
                     'timeloop==1.0.2']
 
-setup(name='example-greeting',
+setup(name=os.getenv('APP'),
       version=version,
       description='Example package Hi',
       author='Matthew Kennedy',

@@ -1,0 +1,23 @@
+.build:debug:
+  variables:
+    SEMVER: ${VERSION}-b${VERSION_CODE}+${BUILD}
+    _PRE_RELEASE: b$VERSION_CODE
+    PRE_RELEASE: b$VERSION_CODE
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'lint:check'
+      optional: true
+
+build:debug:
+  extends:
+    - .build_base
+    - .build
+    - .build:debug
+    - .build:override
+  rules:
+    - if: $RP_BUILDS_DISABLED == 'true'
+      when: never
+    - if: $RP_DEBUG_BUILD_DISABLED == 'true'
+      when: never
+    - if: $CI_COMMIT_REF_NAME

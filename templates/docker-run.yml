@@ -2,13 +2,17 @@ include:
   - local: 'templates/core.yml'
   - local: 'base-docker.yml'
 
+variables:
+  RP_TEMPLATE_NAME: 'docker-run'
+
 .build:
   extends:
     - .docker_base
-  script:
-    - export SOURCE_IMAGE=$CI_REGISTRY_IMAGE/$DIR:$CI_COMMIT_SHORT_SHA
-    - docker pull $SOURCE_IMAGE
-    - sh run.sh || true
+  script: | 
+    #### Running Container ####
+    export SOURCE_IMAGE=$CI_REGISTRY_IMAGE/$DIR:$CI_COMMIT_SHORT_SHA
+    docker pull $SOURCE_IMAGE -q
+    sh run.sh || true
 
 .publish:
   extends:

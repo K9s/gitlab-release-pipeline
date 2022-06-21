@@ -1,69 +1,131 @@
-.semver:
+.bump_base:
   stage: semver
-  extends: .setup_base
+  extends:
+    - .rp_base
   when: manual
   cache: []
-  script:
-    - cd $DIR
-    - unset VERSION
-    - export BUMP="${CI_JOB_NAME}"
-    - export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-    - $CI_PROJECT_DIR/release.sh check
-    - BUMP_VERSION=$($CI_PROJECT_DIR/semver.py get)
-    - echo "${BUMP} Bumping to ${BUMP_VERSION}..."
-    - git tag -f $APP-bump-$BUMP_VERSION
-    - git push -f origin $APP-bump-$BUMP_VERSION
-    - echo "VERSION_BUMPED=$BUMP_VERSION" > $CI_JOB_NAME.env
-    - URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/cancel"
-    - echo "Successfully bumped to version ${BUMP_VERSION}. Cancelling current pipeline ($CI_PIPELINE_ID) in 15 seconds..."
-    - sleep 15
-    - 'curl --request POST --header "PRIVATE-TOKEN: $RELEASE_PASS" "$URL"'
+  script: |
+    #### SemVer Bump ####
+    set -e
+    
+    cd $DIR
+    export RP_BUMP=$(echo $CI_JOB_NAME | cut -d ':' -f 2)
+    export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
+    $CI_PROJECT_DIR/release.sh check
+    TAG_PREFIX=$("$CI_PROJECT_DIR"/semver.py get-tag-prefix)
+    BUMP_VERSION=$($CI_PROJECT_DIR/semver.py get)
+    echo "${BUMP} Bumping to ${BUMP_VERSION}..."
+    git tag -f bump-${TAG_PREFIX}$BUMP_VERSION
+    git push -f origin bump-${TAG_PREFIX}$BUMP_VERSION
+    echo "VERSION_BUMPED=$BUMP_VERSION" > $CI_JOB_NAME.env
+    CANCEL_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/cancel"
+    echo "Successfully bumped to version ${BUMP_VERSION}. Cancelling current pipeline ($CI_PIPELINE_ID) in 15 seconds..."
+    sleep 15
+    curl --request POST --header "PRIVATE-TOKEN: $RELEASE_PASS" "$CANCEL_URL"
   artifacts:
     reports:
       dotenv: $DIR/$CI_JOB_NAME.env
   needs:
     - job: 'get:version'
-      artifacts: true
+      optional: true
   resource_group: $APP-release
 
-patch:
-  extends: .semver
+bump:patch:
+  extends: .bump_base
   rules:
+    - if: $RP_SEMVER_BUMP_JOBS_DISABLED
+      when: never
     - if: $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
     - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
-minor:
-  extends: .semver
+bump:minor:
+  extends: .bump_base
   rules:
+    - if: $RP_SEMVER_BUMP_JOBS_DISABLED
+      when: never
     - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
-major:
-  extends: .semver
+bump:major:
+  extends: .bump_base
   rules:
+    - if: $RP_SEMVER_BUMP_JOBS_DISABLED
+      when: never
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
-set:stable:tag:
-  extends:
-    - .setup_base
-  stage: prod publish
-  cache: []
+get:version:
+  extends: .rp_base
+  stage: semver
   script:
-    - cd $DIR
-    - export IGNORE_ALREADY_TAGGED=true
-    - export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-    - $CI_PROJECT_DIR/release.sh check
-    - git tag -f $APP-stable
-    - git push --delete origin $APP-stable || true
-    - git push -f origin $APP-stable
-  rules:
-    - !reference [.release_rules, rules]
-  needs:
-    - job: 'gitlab:release'
-      artifacts: true
-    - job: 'publish:release'
-      artifacts: true
-    - job: 'get:version'
-      artifacts: true
-  resource_group: $APP-release
+    - |
+      #### Pulling Artifacts ####
+      set -e
+      
+      [[ -z "${RELEASE_PASS}" ]] && { echo "!! RELEASE_PASS not set. Create an access token with repository write/read and set RELEASE_PASS in CI/CD variables of the project then retry !!" && exit 1; } || { echo "RELEASE_PASS set. Continuing"; }
+      if [[ -z "${RP_PARENT_PIPELINE_ID}" ]]; then
+        SETUP_ARTIFACT_REF=${RP_SETUP_ARTIFACT_REF:-main}
+        SETUP_ARTIFACT_JOB=${RP_SETUP_ARTIFACT_JOB:-"publish:scripts"}
+        
+        CURL_CMD='curl -sS -o ${OUTPUT_FOLDER}${ARTIFACT} --location --header "PRIVATE-TOKEN: ${RP_TEMPLATE_PROJECT_API_TOKEN}" "${CI_API_V4_URL}/projects/${RP_TEMPLATE_PROJECT_ID}/jobs/artifacts/${SETUP_ARTIFACT_REF}/raw/${OUTPUT_FOLDER}${ARTIFACT}?job=${SETUP_ARTIFACT_JOB}"'
+        
+        echo "Pulling artifacts from projectid:${RP_TEMPLATE_PROJECT_ID} ref:${SETUP_ARTIFACT_REF} job:${SETUP_ARTIFACT_JOB}"
+        
+        mkdir .config || true
+        OUTPUT_FOLDER=.config/
+        ARTIFACT=.pypirc eval "$CURL_CMD"
+        ARTIFACT=pip.conf eval "$CURL_CMD"
+        ARTIFACT=.netrc eval "$CURL_CMD"
+        ARTIFACT=codequality-cache.sh eval "$CURL_CMD"
+        
+        OUTPUT_FOLDER=
+        ARTIFACT=semver.py eval "$CURL_CMD"
+        ARTIFACT=release.sh eval "$CURL_CMD"
+      fi
+    - |
+      #### Processing Artifacts ####
+      set -e
+      
+      if [[ -z "${RP_CENTRAL_REGISTRY_PROJECT_ID}" ]]; then
+        RP_CENTRAL_REGISTRY_PROJECT_ID=$CI_PROJECT_ID
+      fi
+      find .config -type f | xargs sed -i "s/\$CI_JOB_TOKEN/$CI_JOB_TOKEN/g"
+      find .config -type f | xargs sed -i "s/\$CI_PROJECT_ID/$CI_PROJECT_ID/g"
+      find .config -type f | xargs sed -i "s/\$RP_CENTRAL_REGISTRY_PROJECT_ID/$RP_CENTRAL_REGISTRY_PROJECT_ID/g"
+      find .config -type f | xargs sed -i "s/\$CI_SERVER_HOST/$CI_SERVER_HOST/g"
+
+      CI_API_V4_URL_REPLACE=$(printf '%s\n' "$CI_API_V4_URL" | sed -e 's/[\/&]/\\&/g')
+      find .config -type f | xargs sed -i "s/\$CI_API_V4_URL/$CI_API_V4_URL_REPLACE/g"
+
+      mv .config/codequality-cache.sh .
+      chmod +x codequality-cache.sh
+      chmod +x semver.py
+      chmod +x release.sh
+    - |
+      #### Generating config.sh ####
+      set -e
+      
+      echo "cp .config/.netrc ~" > config.sh
+      echo "cp .config/.pypirc ~" >> config.sh
+      echo "mkdir ~/.pip || true" >> config.sh
+      echo "cp .config/pip.conf ~/.pip" >> config.sh
+      echo 'echo "FULL_DIR: $(realpath ${DIR})"' >> config.sh
+      echo "chmod 600 ~/.pypirc" >> config.sh
+      chmod +x config.sh
+    - |
+      #### Checking SemVer ####
+      set -e
+      
+      ./config.sh
+      cd $DIR
+      export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
+      $CI_PROJECT_DIR/release.sh prep
+  artifacts:
+    reports:
+      dotenv: $DIR/release.env
+    paths:
+      - .config/*
+      - semver.py
+      - release.sh
+      - codequality-cache.sh
+      - config.sh

@@ -1,4 +1,20 @@
 include:
-  - local: core/publish-alpha.yml
-  - local: core/publish-candidate.yml
+  - local: core/publish-prerelease.yml
   - local: core/publish-release.yml
+
+.publish_base:
+  extends:
+    - .base
+  after_script: |
+    #### Preparing publish env ####
+    set -e
+    
+    echo "PUBLISH_JOB=$CI_JOB_NAME" >> $CI_PROJECT_DIR/rp.env
+    echo "PRE_RELEASE=$PRE_RELEASE" >> $CI_PROJECT_DIR/rp.env
+    echo "SEMVER=$SEMVER" >> $CI_PROJECT_DIR/rp.env
+
+    cat $CI_PROJECT_DIR/rp.env
+
+.publish:override:
+  variables:
+    _: ''

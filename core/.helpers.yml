@@ -1,0 +1,13 @@
+.docker_login:
+  script: |
+    #### Logging Into Registry ####
+    set -e
+    echo "Logging into $CI_REGISTRY"
+    until docker info > /dev/null ; do sleep 2; done
+    echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login -u "$CI_DEPENDENCY_PROXY_USER" --password-stdin "$CI_DEPENDENCY_PROXY_SERVER"
+
+.gitlab_login:
+  script: |
+    echo "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}" > ~/.git-credentials
+    git config --global credential.helper store

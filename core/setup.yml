@@ -1,87 +1,51 @@
 include:
-  - local: core/.setup_base.yml
+  - local: core/.rp_base.yml
   - local: core/.rules.yml
   - local: core/.gate_base.yml
+  - local: core/.base.yml
 
 pull:setup:artifacts:
   script:
-    - echo "Pulling artifacts from parent pipeline ${PARENT_PIPELINE_ID}"
-  stage: setup
+    - echo "Pulling artifacts from parent pipeline ${RP_PARENT_PIPELINE_ID}"
+  stage: .pre
   needs:
-    pipeline: $PARENT_PIPELINE_ID
+    pipeline: $RP_PARENT_PIPELINE_ID
     job: publish:scripts
   rules:
-    - if: $PARENT_PIPELINE_ID
+    - if: $RP_PARENT_PIPELINE_ID
   artifacts:
     paths:
       - .config/*
       - semver.py
       - release.sh
 
-get:version:
-  extends: .setup_base
-  stage: setup
-  script:
-    - '[[ -z "${RELEASE_PASS}" ]] && { echo "!! RELEASE_PASS not set. Create an access token with repository write/read and set RELEASE_PASS in CI/CD variables of the project then retry !!" && exit 1; } || { echo "RELEASE_PASS set. Continuing"; }'
-    - |
-      # Pulling Artifacts
-      if [[ -z "${PARENT_PIPELINE_ID}" ]]; then
-        SETUP_ARTIFACT_REF=${SETUP_ARTIFACT_REF:-main}
-        SETUP_ARTIFACT_JOB=${SETUP_ARTIFACT_JOB:-"publish:scripts"}
-        
-        CURL_CMD='curl -sS -o ${OUTPUT_FOLDER}${ARTIFACT} --location --header "PRIVATE-TOKEN: ${CI_PROJECT_API_TOKEN}" "${CI_API_V4_URL}/projects/${CI_TEMPLATE_PROJECT_ID}/jobs/artifacts/${SETUP_ARTIFACT_REF}/raw/${OUTPUT_FOLDER}${ARTIFACT}?job=${SETUP_ARTIFACT_JOB}"'
-        
-        echo "Pulling artifacts from projectid:${CI_TEMPLATE_PROJECT_ID} ref:${SETUP_ARTIFACT_REF} job:${SETUP_ARTIFACT_JOB}"
-        
-        mkdir .config || true
-        OUTPUT_FOLDER=.config/
-        ARTIFACT=.pypirc eval "$CURL_CMD"
-        ARTIFACT=pip.conf eval "$CURL_CMD"
-        ARTIFACT=.netrc eval "$CURL_CMD"
-        ARTIFACT=codequality-cache.sh eval "$CURL_CMD"
-        
-        OUTPUT_FOLDER=
-        ARTIFACT=semver.py eval "$CURL_CMD"
-        ARTIFACT=release.sh eval "$CURL_CMD"
-      fi
-    - |
-      # Processing artifacts
-      find .config -type f | xargs sed -i "s/\$CI_JOB_TOKEN/$CI_JOB_TOKEN/g"
-      find .config -type f | xargs sed -i "s/\$CI_PROJECT_ID/$CI_PROJECT_ID/g"
-      find .config -type f | xargs sed -i "s/\$CENTRAL_REGISTRY_PROJECT_ID/$CENTRAL_REGISTRY_PROJECT_ID/g"
-      find .config -type f | xargs sed -i "s/\$CI_SERVER_HOST/$CI_SERVER_HOST/g"
-
-      CI_API_V4_URL_REPLACE=$(printf '%s\n' "$CI_API_V4_URL" | sed -e 's/[\/&]/\\&/g')
-      find .config -type f | xargs sed -i "s/\$CI_API_V4_URL/$CI_API_V4_URL_REPLACE/g"
-
-      mv .config/codequality-cache.sh .
-      chmod +x codequality-cache.sh
-      chmod +x semver.py
-      chmod +x release.sh
-    - |
-      # Generating config.sh
-      echo "cp .config/.netrc ~" > config.sh
-      echo "cp .config/.pypirc ~" >> config.sh
-      echo "mkdir ~/.pip || true" >> config.sh
-      echo "cp .config/pip.conf ~/.pip" >> config.sh
-      echo 'echo "FULL_DIR: $(realpath ${DIR})"' >> config.sh
-      echo "chmod 600 ~/.pypirc" >> config.sh
-      chmod +x config.sh
-
-    - ./config.sh
-    - cd $DIR
-    - export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-    - $CI_PROJECT_DIR/release.sh prep
-  artifacts:
-    reports:
-      dotenv: $DIR/release.env
-    paths:
-      - .config/*
-      - semver.py
-      - release.sh
-      - codequality-cache.sh
-      - config.sh
+set:stable:tag:
+  extends:
+    - .rp_base
+  stage: postrelease
+  cache: []
+  script: |
+    #### Setting stable tag ####
+    set -e
+    cd $DIR
+    export RP_BUMP=build
+    export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
+    $CI_PROJECT_DIR/release.sh check
+    git tag -f $APP-stable
+    git tag -f $APP-$VERSION_MAJOR-stable
+    git tag -f $APP-$VERSION_MAJOR.$VERSION_MINOR-stable
+    git push --delete origin $APP-stable || true
+    git push --delete origin $APP-$VERSION_MAJOR-stable || true
+    git push --delete origin $APP-$VERSION_MAJOR.$VERSION_MINOR-stable || true
+    git push -f origin $APP-stable
+    git push -f origin $APP-$VERSION_MAJOR-stable
+    git push -f origin $APP-$VERSION_MAJOR.$VERSION_MINOR-stable
+  rules:
+    - !reference [.release_rules, rules]
+  resource_group: $APP-release
   needs:
-    - job: 'pull:setup:artifacts'
-      artifacts: true
+    - job: 'gitlab:release'
+    - job: 'publish:release'
+      optional: true
+    - job: 'get:version'
       optional: true

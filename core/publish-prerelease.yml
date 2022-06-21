@@ -1,0 +1,55 @@
+gate:prerelease:
+  extends:
+    - .gate_base
+  stage: prerelease
+  when: on_success
+  rules:
+    - if: $RP_PUBLISH_DISABLED == 'true'
+      when: never
+    - if: $CI_COMMIT_REF_NAME
+
+.publish:alpha:
+  variables:
+    PUBLISH_TYPE: 'alpha'
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:alpha'
+      optional: true
+    - job: 'gate:prerelease'
+
+publish:alpha:
+  extends:
+    - .publish_base
+    - .publish
+    - .publish:alpha
+    - .publish:override
+  stage: prerelease
+  rules:
+    - if: $RP_PUBLISH_DISABLED == 'true'
+      when: never
+    - !reference [.non-release_rules, rules]
+
+.publish:debug:
+  variables:
+    PUBLISH_TYPE: 'debug'
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:debug'
+      optional: true
+    - job: 'gate:prerelease'
+
+publish:debug:
+  extends:
+    - .publish_base
+    - .publish
+    - .publish:debug
+    - .publish:override
+  stage: prerelease
+  rules:
+    - if: $RP_PUBLISH_DISABLED == 'true'
+      when: never
+    - if: $RP_DEBUG_BUILD_DISABLED == 'true'
+      when: never
+    - if: $CI_COMMIT_REF_NAME

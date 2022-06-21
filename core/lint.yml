@@ -1,0 +1,30 @@
+.lint_base:
+  variables:
+    SEMVER: $RELEASE_SEMVER
+  extends:
+    - .base
+  interruptible: true
+  after_script: |
+    #### Preparing lint.env ####
+    set -e
+
+    echo "LINT_JOB=$CI_JOB_NAME" >> $CI_PROJECT_DIR/rp.env
+    
+    cat $CI_PROJECT_DIR/rp.env
+
+.link:check:
+  variables:
+    _: ''
+
+lint:check:
+  extends:
+    - .lint_base
+    - .lint
+    - .link:check
+  stage: prebuild
+  needs:
+    - job: 'get:version'
+  rules:
+    - if: $RP_LINT_DISABLED == 'true'
+      when: never
+    - if: $CI_COMMIT_REF_NAME

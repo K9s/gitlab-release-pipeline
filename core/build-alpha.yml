@@ -1,0 +1,22 @@
+.build:alpha:
+  variables:
+    SEMVER: ${VERSION}-a${VERSION_CODE}+${BUILD}
+    _PRE_RELEASE: a$VERSION_CODE
+    PRE_RELEASE: a$VERSION_CODE
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:debug'
+      artifacts: false
+      optional: true
+
+build:alpha:
+  extends:
+    - .build_base
+    - .build
+    - .build:alpha
+    - .build:override
+  rules:
+    - if: $RP_BUILDS_DISABLED == 'true'
+      when: never
+    - !reference [.non-release_rules, rules]

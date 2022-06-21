@@ -2,21 +2,27 @@ include:
   - local: 'core/stages.yml'
 
   - local: 'core/setup.yml'
-  - local: 'core/static-analysis.yml'
   - local: 'core/semver.yml'
+  - local: 'core/lint.yml'
   - local: 'core/build.yml'
   - local: 'core/test.yml'
   - local: 'core/publish.yml'
   - local: 'core/deploy.yml'
-  # - local: 'core/accessibility.yml'
   - local: 'core/integration.yml'
 
   # Gitlab Provided
   - local: 'core/code-quality.yml'
-  - local: 'core/security.yml'
+  # - local: 'core/accessibility.yml'
 
+default:
+  tags:
+   - dind-nosock
+  retry:
+    max: 2
+    when:
+    - runner_system_failure
+    - stuck_or_timeout_failure
 
-# Built-in extension points
 .lint:
   script:
     - 'echo "no lint config defined Add .lint to pipeline to define."'
@@ -46,17 +52,15 @@ include:
     - 'echo "no deploy stop config defined Add .deploy_stop to pipeline to define."'
 
 variables:
-  # User to
-  #RELEASE_PASS:
-  #RELEASE_USER:
+  RP_TEMPLATE_NAME: 'core'
+
+  ARTIFACT_COMPRESSION_LEVEL: 'default'
+  CACHE_COMPRESSION_LEVEL: 'fast'
+  FF_USE_FASTZIP: 'true'
+  TRANSFER_METER_FREQUENCY: '5s'
+  CACHE_REQUEST_TIMEOUT: '20m'
 
   DIR: src
-  #APP:
-  #ENABLE_CONTINUOUS_DEPLOYMENT:
-  #PARENT_PIPELINE_ID:
-  #SETUP_ARTIFACT_REF:
-  #SETUP_ARTIFACT_JOB:
-  #CENTRAL_REGISTRY_PROJECT_ID:
-  #CI_TEMPLATE_PROJECT_ID:
-  #CI_PROJECT_NAMESPACE:
-  #CI_PROJECT_NAME:
+
+  RP_GITLAB_RELEASE_PREFIX: '[Release]'
+  RP_SEMVER_BUMP_JOBS_DISABLED: 'true'

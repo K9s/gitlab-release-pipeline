@@ -1,40 +1,55 @@
-gate:dev:deploy:
+gate:dev:
   extends:
     - .gate_base
-  stage: preprod deploy
+  stage: preprod
   rules:
-    - !reference [.nonrelease_rules, rules]
+    - if: $RP_DEPLOYS_DISABLED == 'true'
+      when: never
+    - !reference [.non-release_rules, rules]
   when: on_success
 
-deploy:dev:
-  extends:
-    - .deploy_base
-    - .deploy
-  stage: preprod deploy
+.deploy:dev:
   environment:
     deployment_tier: development
     name: dev
     on_stop: deploy:dev:stop
     auto_stop_in: 1 hour
-  rules:
-    - !reference [.nonrelease_rules, rules]
-  resource_group: global-dev-deploy
   needs:
     - job: 'get:version'
-    - job: 'gate:dev:deploy'
+      optional: true
+    - job: 'gate:dev'
+
+deploy:dev:
+  extends:
+    - .deploy_base
+    - .deploy
+    - .deploy:dev
+    - .deploy:override
+  stage: preprod
+  rules:
+    - if: $RP_DEPLOYS_DISABLED == 'true'
+      when: never
+    - !reference [.non-release_rules, rules]
+  resource_group: global-dev-deploy
+
+.deploy:dev:stop:
+  environment:
+    deployment_tier: development
+    name: dev
+    action: stop
 
 deploy:dev:stop:
   extends:
     - .deploy_base
     - .deploy_stop
-  stage: preprod deploy
-  environment:
-    deployment_tier: development
-    name: dev
-    action: stop
+    - .deploy:dev:stop
+  stage: preprod
   rules:
-    - !reference [.nonrelease_rules, rules]
+    - if: $RP_DEPLOYS_DISABLED == 'true'
+      when: never
+    - !reference [.non-release_rules, rules]
   needs:
     - job: 'get:version'
+      optional: true
     - job: 'deploy:dev'
   when: manual

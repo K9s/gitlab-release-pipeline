@@ -2,3 +2,6 @@ include:
   - local: 'templates/core.yml'
   - local: 'templates/bases/python.yml'
   - local: 'templates/bases/docker.yml'
+
+variables:
+  RP_TEMPLATE_NAME: 'docker-python'

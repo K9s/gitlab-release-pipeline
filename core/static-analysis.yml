@@ -1,5 +1,0 @@
-lint:check:
-  extends:
-    - .lint
-  stage: static analysis
-  needs: []

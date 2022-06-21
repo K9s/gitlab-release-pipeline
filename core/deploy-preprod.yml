@@ -1,40 +1,55 @@
-gate:preprod:deploy:
+gate:preprod:
   extends:
     - .gate_base
-  stage: preprod deploy
+  stage: preprod
   rules:
+    - if: $RP_DEPLOYS_DISABLED == 'true'
+      when: never
     - !reference [.release_rules, rules]
   when: on_success
 
-deploy:preprod:
-  extends:
-    - .deploy_base
-    - .deploy
-  stage: preprod deploy
+.deploy:preprod:
   environment:
     deployment_tier: testing
     name: preprod
     on_stop: deploy:preprod:stop
     auto_stop_in: 1 week
-  rules:
-    - !reference [.release_rules, rules]
-  resource_group: global-preprod-deploy
   needs:
     - job: 'get:version'
-    - job: 'gate:preprod:deploy'
+      optional: true
+    - job: 'gate:preprod'
+
+deploy:preprod:
+  extends:
+    - .deploy_base
+    - .deploy
+    - .deploy:preprod
+    - .deploy:override
+  stage: preprod
+  rules:
+    - if: $RP_DEPLOYS_DISABLED == 'true'
+      when: never
+    - !reference [.release_rules, rules]
+  resource_group: global-preprod-deploy
+
+.deploy:preprod:stop:
+  environment:
+    deployment_tier: testing
+    name: preprod
+    action: stop
 
 deploy:preprod:stop:
   extends:
     - .deploy_base
     - .deploy_stop
-  stage: preprod deploy
-  environment:
-    deployment_tier: testing
-    name: preprod
-    action: stop
+    - .deploy:preprod:stop
+  stage: preprod
   rules:
+    - if: $RP_DEPLOYS_DISABLED == 'true'
+      when: never
     - !reference [.release_rules, rules]
   needs:
     - job: 'get:version'
+      optional: true
     - job: 'deploy:preprod'
   when: manual

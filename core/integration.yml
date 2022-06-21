@@ -1,23 +1,6 @@
-integration:candidate:
+integration:trigger:
   extends:
     - .integration
   stage: integration
   rules:
-    - !reference [.release_rules, rules]
-  needs:
-    - job: 'get:version'
-      artifacts: true
-    - job: 'deploy:preprod'
-      artifacts: true
-
-integration:alpha:
-  extends:
-    - .integration
-  stage: integration
-  needs:
-    - job: 'get:version'
-      artifacts: true
-    - job: 'deploy:dev'
-      artifacts: true
-  rules:
-    - !reference [.nonrelease_rules, rules]
+    - if: $RP_INTEGRATION_TRIGGER_ENABLED == 'true'

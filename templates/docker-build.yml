@@ -1,3 +1,6 @@
 include:
   - local: 'templates/core.yml'
-  - local: 'template/bases/docker.yml'
+  - local: 'templates/bases/docker.yml'
+
+variables:
+  RP_TEMPLATE_NAME: 'docker-build'

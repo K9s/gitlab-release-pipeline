@@ -1,0 +1,20 @@
+.test:alpha:
+  variables:
+    TEST_TYPE: 'alpha'
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:alpha'
+      optional: true
+
+test:alpha:
+  extends:
+    - .test_base
+    - .test
+    - .test:alpha
+    - .test:override
+  stage: test
+  rules:
+    - if: $RP_TESTS_DISABLED == 'true'
+      when: never
+    - !reference [.non-release_rules, rules]

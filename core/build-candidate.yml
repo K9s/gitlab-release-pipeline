@@ -1,0 +1,22 @@
+.build:candidate:
+  variables:
+    SEMVER: $RELEASE_SEMVER
+    _PRE_RELEASE: ''
+    PRE_RELEASE: ''
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:debug'
+      artifacts: false
+      optional: true
+
+build:candidate:
+  extends:
+    - .build_base
+    - .build
+    - .build:candidate
+    - .build:override
+  rules:
+    - if: $RP_BUILDS_DISABLED == 'true'
+      when: never
+    - !reference [.release_rules, rules]

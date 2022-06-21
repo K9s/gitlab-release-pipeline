@@ -1,0 +1,20 @@
+.test:candidate:
+  variables:
+    TEST_TYPE: 'candidate'
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:candidate'
+      optional: true
+
+test:candidate:
+  extends:
+    - .test_base
+    - .test
+    - .test:candidate
+    - .test:override
+  stage: test
+  rules:
+    - if: $RP_TESTS_DISABLED == 'true'
+      when: never
+    - !reference [.release_rules, rules]

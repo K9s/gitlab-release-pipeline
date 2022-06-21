@@ -1,4 +1,4 @@
 include:
-  - project: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+  - project: $RP_TEMPLATE_PROJECT_NAMESPACE/$RP_TEMPLATE_PROJECT_NAME
     ref: $CI_COMMIT_REF_NAME
     file: templates/script-python.yml

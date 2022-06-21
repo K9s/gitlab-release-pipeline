@@ -1,35 +1,21 @@
-test:release:
-  extends:
-    - .test
-  stage: test
-  rules:
-    - !reference [.release_rules, rules]
-  needs:
-    - job: 'get:version'
-      artifacts: true
-    - job: 'build:release'
-      artifacts: true
+include:
+  - local: core/test-alpha.yml
+  - local: core/test-candidate.yml
+  - local: core/test-debug.yml
 
-test:candidate:
+.test_base:
   extends:
-    - .test
-  stage: test
-  rules:
-    - !reference [.release_rules, rules]
-  needs:
-    - job: 'get:version'
-      artifacts: true
-    - job: 'build:candidate'
-      artifacts: true
+    - .base
+  interruptible: true
+  after_script: |
+    #### Preparing test env ####
+    set -e
 
-test:alpha:
-  extends:
-    - .test
+    echo "TEST_JOB=$CI_JOB_NAME" >> $CI_PROJECT_DIR/rp.env
+    echo "PRE_RELEASE=$PRE_RELEASE" >> $CI_PROJECT_DIR/rp.env
+    echo "SEMVER=$SEMVER" >> $CI_PROJECT_DIR/rp.env
+    
+    cat $CI_PROJECT_DIR/rp.env
+
+.test:override:
   stage: test
-  needs:
-    - job: 'get:version'
-      artifacts: true
-    - job: 'build:alpha'
-      artifacts: true
-  rules:
-    - !reference [.nonrelease_rules, rules]

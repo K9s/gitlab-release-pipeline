@@ -1,3 +1,9 @@
 include:
   - local: 'templates/core.yml'
   - local: 'templates/bases/python.yml'
+
+variables:
+  RP_DEPLOYS_DISABLED: 'true'
+  RP_PUBLISH_DISABLED: 'true'
+  RP_BUILDS_DISABLED: 'true'
+  RP_TEMPLATE_NAME: 'script-python'

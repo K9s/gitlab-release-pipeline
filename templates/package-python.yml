@@ -2,21 +2,30 @@ include:
   - local: 'templates/core.yml'
   - local: 'templates/bases/python.yml'
 
+variables:
+  RP_DEPLOYS_DISABLED: 'true'
+  RP_DEBUG_BUILD_DISABLED: 'true'
+  RP_TEMPLATE_NAME: 'package-python'
+
 .build:
-  extends: .base_python
-  script:
-    - cd $DIR
-    - python setup.py sdist bdist_wheel
-    - mv dist/ $CI_PROJECT_DIR
+  extends:
+    - .python_base
+  script: |
+    #### Building Python Package ####
+    [ -f "requirements.txt" ] && pip install -r requirements.txt || echo "No requirements.txt, skipping"
+    python setup.py sdist bdist_wheel
   artifacts:
     paths:
-      - dist/*
+      - $DIR/dist/*
 
 .publish:
-  extends: .base_python
-  script:
-    - pip install twine==4.0
-    - keyring --disable
-    - '[[ -z "${PRE_RELEASE}" ]] && REPOSITORY=gitlab-central || REPOSITORY=gitlab-project'
-    - echo "Using repository $REPOSITORY"
-    - TWINE_NON_INTERACTIVE=True TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository ${REPOSITORY} ${CI_PROJECT_DIR}/dist/* --verbose
+  cache: []
+  extends:
+    - .python_base
+  script: |
+    #### Python Package Publish ####
+    pip install twine==4.0
+    keyring --disable
+    [[ -z "${PRE_RELEASE}" ]] && REPOSITORY=gitlab-central || REPOSITORY=gitlab-project
+    echo "Using repository $REPOSITORY"
+    TWINE_NON_INTERACTIVE=True TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository ${REPOSITORY} dist/* --verbose

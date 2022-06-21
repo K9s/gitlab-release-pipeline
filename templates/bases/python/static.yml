@@ -1,0 +1,27 @@
+.lint:
+  extends:
+    - .python_base
+  stage: prebuild
+  needs: []
+  script: |
+    #### Pylint ####
+    [ -f "../.pylintrc" ] && cp ../.pylintrc .
+    pip install pylint
+    pylint --rcfile=.pylintrc $(find -type f -name "*.py" ! -path "**/venv/**")
+  allow_failure: true
+
+flake8:
+  extends:
+    - .base
+    - .python_base
+  stage: prebuild
+  needs: []
+  script: |
+    #### Flake8 ####
+    pip install flake8
+    flake8 --max-line-length=140 --extend-exclude=*.pyc,venv/* .
+  rules:
+    - if: $RP_ALLOW_FLAKE8_FAILURE == 'true'
+      allow_failure: true
+    - if: $CI_COMMIT_REF_NAME
+      allow_failure: false

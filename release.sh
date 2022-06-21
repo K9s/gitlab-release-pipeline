@@ -5,7 +5,6 @@ release_type=${1}
 
 commit=${CI_COMMIT_SHA:-$(git rev-parse HEAD)}
 branch=${ALLOWED_RELEASE_BRANCH:-$CI_DEFAULT_BRANCH}
-project_dir=${CI_PROJECT_DIR:-$(pwd)}
 
 if ! git branch -a --contains "${commit}" | grep -e "^[* ]*remotes/origin/${branch}\$"
 then
@@ -25,10 +24,6 @@ if [[ -z "${APP}" ]]; then
   export APP=$app
 fi
 
-# Define some cool release pusher to distinguish from real commits :)
-git config user.name "John Glenn"
-git config user.email "should.have.been.first@in.space"
-
 # Work around the limitation where gitlab runners can't push to repos.
 if [[ -z "${RELEASE_USER}" ]]; then
   echo "Using default checkout credentials"
@@ -42,23 +37,39 @@ else
 fi
 
 git checkout "${branch}"
-git fetch || true
-git fetch --tags || true
+echo "Fetching from origin"
+git fetch -f || true
+git fetch -f --tags || true
 
-version=$("$project_dir"/semver.py get)
+project_dir=$(dirname "$0")
+
+echo "Determining version using RP_TAG_PREFIX: ${RP_TAG_PREFIX:-'default'}"
+export __APP=`echo "$APP" | tr '-' '_'`
+_APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
+VERSION_CODE=$((${_APP}_VERSION_CODE+1))
+BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
+RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
+export BUILD=$((${RP_SEMVER_BUILD_REF}))
+TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
+VERSION=$("$project_dir"/semver.py get)
+RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
+CURRENT_VERSION=$("$project_dir"/semver.py get-current)
+echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
 if [[ $release_type == 'prep' ]]; then
-  DESCRIPTION="Release version ${version} of ${APP}"
-  echo "TAG=${APP}-${version}" > release.env
-  echo "VERSION=${version}" >> release.env
-  echo "CURRENT_VERSION=$("$project_dir"/semver.py get-current)" >> release.env
+  echo "TAG=${TAG_PREFIX}${RELEASE_SEMVER}" > release.env
+  echo "DESCRIPTION='Release version ${VERSION} of ${APP}'" >> release.env
+  echo "APP=${APP}" >> release.env
+  echo "VERSION=${VERSION}" >> release.env
+  echo "VERSION_CODE=${VERSION_CODE}" >> release.env
+  echo "CURRENT_VERSION=${CURRENT_VERSION}" >> release.env
   echo "VERSION_MINOR=$("$project_dir"/semver.py get-minor)" >> release.env
   echo "VERSION_MAJOR=$("$project_dir"/semver.py get-major)" >> release.env
-  echo "DESCRIPTION='${DESCRIPTION}'" >> release.env
-  echo "APP=${APP}" >> release.env
+  echo "BUILD_NUMBER=${BUILD_NUMBER}" >> release.env
+  echo "RP_SEMVER_BUILD_REF=$RP_SEMVER_BUILD_REF" >> release.env
+  echo "BUILD=${BUILD}" >> release.env
+  echo "RELEASE_SEMVER=${RELEASE_SEMVER}" >> release.env
+  echo "RP_TEMPLATE_NAME=${RP_TEMPLATE_NAME}" >> release.env
   echo "----------------release.env--------------------"
   cat release.env
   echo "-----------------------------------------------"
-elif [[ $release_type == 'check' ]]; then
-  current_version=$("$project_dir"/semver.py get-current)
-  echo "Checking... Current version: ${current_version}, next version: ${version}"
 fi

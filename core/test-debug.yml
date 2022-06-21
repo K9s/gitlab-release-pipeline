@@ -1,0 +1,22 @@
+.test:debug:
+  variables:
+    TEST_TYPE: 'debug'
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'build:debug'
+      optional: true
+
+test:debug:
+  extends:
+    - .test_base
+    - .test
+    - .test:debug
+    - .test:override
+  stage: test
+  rules:
+    - if: $RP_TESTS_DISABLED == 'true'
+      when: never
+    - if: $RP_DEBUG_BUILD_DISABLED == 'true'
+      when: never
+    - if: $CI_COMMIT_REF_NAME

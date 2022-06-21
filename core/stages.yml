@@ -1,13 +1,18 @@
+include:
+  - local: core/.helpers.yml
+
 stages:
-  - setup
-  - static analysis
   - semver
+  - prebuild
   - build
+  - postbuild
+  - pretest
   - test
-  - prerelease publish
-  - preprod deploy
+  - posttest
+  - prerelease
+  - preprod
   - accessibility
   - integration
-  - prod publish
-  - prod deploy
-  - wrapup
+  - release
+  - prod
+  - postrelease

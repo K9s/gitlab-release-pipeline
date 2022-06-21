@@ -1,53 +1,94 @@
-gate:prod:publish:
+gate:release:
   extends:
-   - .setup_base
-  stage: prod publish
+   - .rp_base
+  stage: release
   script:
-    - cd $DIR
-    - '[[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped to ${VERSION_BUMPED}, not doing release" && exit 1; }'
-    - echo "Expected to release $VERSION...checking for issues..."
-    - $CI_PROJECT_DIR/release.sh check
-    - echo "Release is a GO!"
+    - |
+      #### SemVer Validation ####
+      set -e
+      
+      cd $DIR
+      [[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped to ${VERSION_BUMPED}, not doing release" && exit 1; }
+      echo "Expected to release $VERSION...checking for issues..."
+      export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
+      $CI_PROJECT_DIR/release.sh check
+      echo "Release is a GO!"
+    - |
+      #### Bump Version Code ####
+      set -e
+      
+      export __APP=`echo "$APP" | tr '-' '_'`
+      _APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
+      
+      VERSION_CODE_CURRENT=$((${_APP}_VERSION_CODE))
+      if [[ $VERSION_CODE_CURRENT -eq 0 ]]; then
+        RESULT=$(curl -sS --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables" --form "key=${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
+      else
+        if ! [[ $VERSION_CODE -eq $VERSION_CODE_CURRENT+1 ]]; then
+          echo "Woops, looks like VERSION_CODE: $VERSION_CODE for $APP was release already!  Please re-run pipeline."
+          exit 1
+        fi
+        RESULT=$(curl -sS --request PUT --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
+      fi
+      
+      echo "Bumping ${_APP}_VERSION_CODE from ${VERSION_CODE_CURRENT} to ${VERSION_CODE}"
   when: manual
   allow_failure: false
   interruptible: true
+  resource_group: $APP-gate-release
   rules:
-    - if: $ENABLE_CONTINUOUS_DEPLOYMENT
+    - if: $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true' && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: on_success
     - !reference [.release_rules, rules]
 
-publish:release:
-  extends:
-    - .publish
-  stage: prod publish
-  rules:
-    - !reference [.release_rules, rules]
+.publish:release:
+  variables:
+    PUBLISH_TYPE: 'candidate'
   needs:
     - job: 'get:version'
-      artifacts: true
-    - job: 'build:release'
-      artifacts: true
-    - job: 'gate:prod:publish'
-      artifacts: true
+      optional: true
+    - job: 'build:candidate'
+      optional: true
+    - job: 'gate:release'
+
+publish:release:
+  extends:
+    - .publish_base
+    - .publish
+    - .publish:release
+    - .publish:override
+  stage: release
+  rules:
+    - if: $RP_PUBLISH_DISABLED == 'true'
+      when: never
+    - !reference [.release_rules, rules]
+
+.gitlab:release:
+  stage: release
+  needs:
+    - job: 'get:version'
+      optional: true
+    - job: 'gate:release'
+    - job: 'build:candidate'
+      optional: true
+    - job: 'test:candidate'
+      optional: true
+    - job: 'publish:release'
+      optional: true
 
 gitlab:release:
+  extends:
+    - .gitlab:release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  stage: prod publish
+  stage: release
   script:
     - echo "Releasing $APP version $VERSION"
   release:
-    name: 'Release $TAG'
-    description: '$DESCRIPTION'
-    tag_name: '$TAG'
-    ref: '$CI_COMMIT_SHA'
+    name: $RP_GITLAB_RELEASE_PREFIX $TAG
+    description: $DESCRIPTION
+    tag_name: $TAG
+    ref: $CI_COMMIT_SHA
   rules:
     - !reference [.release_rules, rules]
-  needs:
-    - job: 'gate:prod:publish'
-      artifacts: true
-    - job: 'get:version'
-      artifacts: true
-    - job: 'build:release'
-      artifacts: true
-    - job: 'test:release'
-      artifacts: true
