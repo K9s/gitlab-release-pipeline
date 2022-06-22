@@ -8,26 +8,25 @@
     #### SemVer Bump ####
     set -e
     
-    cd $DIR
-    export RP_BUMP=$(echo $CI_JOB_NAME | cut -d ':' -f 2)
-    export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-    $CI_PROJECT_DIR/release.sh check
-    TAG_PREFIX=$("$CI_PROJECT_DIR"/semver.py get-tag-prefix)
-    BUMP_VERSION=$($CI_PROJECT_DIR/semver.py get)
+    cd ${DIR}
+    export RP_BUMP=$(echo ${CI_JOB_NAME} | cut -d ':' -f 2)
+    export ALLOWED_RELEASE_BRANCH=${CI_COMMIT_REF_NAME}
+    ${CI_PROJECT_DIR}/release.sh check
+    TAG_PREFIX=$(${CI_PROJECT_DIR}/semver.py get-tag-prefix)
+    BUMP_VERSION=$(${CI_PROJECT_DIR}/semver.py get)
     echo "${BUMP} Bumping to ${BUMP_VERSION}..."
-    git tag -f bump-${TAG_PREFIX}$BUMP_VERSION
-    git push -f origin bump-${TAG_PREFIX}$BUMP_VERSION
-    echo "VERSION_BUMPED=$BUMP_VERSION" > $CI_JOB_NAME.env
-    CANCEL_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/cancel"
-    echo "Successfully bumped to version ${BUMP_VERSION}. Cancelling current pipeline ($CI_PIPELINE_ID) in 15 seconds..."
+    git tag -f bump-${TAG_PREFIX}${BUMP_VERSION}
+    git push -f origin bump-${TAG_PREFIX}${BUMP_VERSION}
+    echo "VERSION_BUMPED=${BUMP_VERSION}" > ${CI_JOB_NAME}.env
+    CANCEL_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/cancel"
+    echo "Successfully bumped to version ${BUMP_VERSION}. Cancelling current pipeline (${CI_PIPELINE_ID}) in 15 seconds..."
     sleep 15
-    curl --request POST --header "PRIVATE-TOKEN: $RELEASE_PASS" "$CANCEL_URL"
+    curl --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" "${CANCEL_URL}"
   artifacts:
     reports:
       dotenv: $DIR/$CI_JOB_NAME.env
   needs:
     - job: 'get:version'
-      optional: true
   resource_group: $APP-release
 
 bump:patch:
@@ -73,21 +72,21 @@ get:version:
         
         mkdir .config || true
         OUTPUT_FOLDER=.config/
-        ARTIFACT=.pypirc eval "$CURL_CMD"
-        ARTIFACT=pip.conf eval "$CURL_CMD"
-        ARTIFACT=.netrc eval "$CURL_CMD"
-        ARTIFACT=codequality-cache.sh eval "$CURL_CMD"
+        ARTIFACT=.pypirc eval "${CURL_CMD}"
+        ARTIFACT=pip.conf eval "${CURL_CMD}"
+        ARTIFACT=.netrc eval "${CURL_CMD}"
+        ARTIFACT=codequality-cache.sh eval "${CURL_CMD}"
         
         OUTPUT_FOLDER=
-        ARTIFACT=semver.py eval "$CURL_CMD"
-        ARTIFACT=release.sh eval "$CURL_CMD"
+        ARTIFACT=semver.py eval "${CURL_CMD}"
+        ARTIFACT=release.sh eval "${CURL_CMD}"
       fi
     - |
       #### Processing Artifacts ####
       set -e
       
       if [[ -z "${RP_CENTRAL_REGISTRY_PROJECT_ID}" ]]; then
-        RP_CENTRAL_REGISTRY_PROJECT_ID=$CI_PROJECT_ID
+        RP_CENTRAL_REGISTRY_PROJECT_ID=${CI_PROJECT_ID}
       fi
       find .config -type f | xargs sed -i "s/\$CI_JOB_TOKEN/$CI_JOB_TOKEN/g"
       find .config -type f | xargs sed -i "s/\$CI_PROJECT_ID/$CI_PROJECT_ID/g"
@@ -117,9 +116,9 @@ get:version:
       set -e
       
       ./config.sh
-      cd $DIR
-      export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-      $CI_PROJECT_DIR/release.sh prep
+      cd ${DIR}
+      export ALLOWED_RELEASE_BRANCH=${CI_COMMIT_REF_NAME}
+      ${CI_PROJECT_DIR}/release.sh prep
   artifacts:
     reports:
       dotenv: $DIR/release.env

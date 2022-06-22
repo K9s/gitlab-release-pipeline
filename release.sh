@@ -16,7 +16,7 @@ fi
 
 if [[ -z "${APP}" ]]; then
   # shellcheck disable=SC2016
-  echo '$APP is unset deriving from folder name'
+  echo '${APP} is unset deriving from folder name'
   app=$(basename $(realpath .))
   if [[ $app == 'src' ]]; then
     app=$(basename $(realpath ../))
@@ -32,19 +32,16 @@ if [[ -z "${RELEASE_USER}" ]]; then
 else
   echo "Using credentials from RELEASE_USER: ${RELEASE_USER}"
   GIT_URL=$(git remote get-url origin)
-  GIT_URL=$(echo "$GIT_URL" | sed -r "s/^(.+?\/\/)(.+?):(.+?)@(.+)$/\1${RELEASE_USER}:${RELEASE_PASS}@\4/")
-  git remote set-url origin "$GIT_URL"
+  GIT_URL=$(echo ${GIT_URL} | sed -r "s/^(.+?\/\/)(.+?):(.+?)@(.+)$/\1${RELEASE_USER}:${RELEASE_PASS}@\4/")
+  git remote set-url origin ${GIT_URL}
 fi
 
 git checkout "${branch}"
-echo "Fetching from origin"
-git fetch -f || true
-git fetch -f --tags || true
 
 project_dir=$(dirname "$0")
 
 echo "Determining version using RP_TAG_PREFIX: ${RP_TAG_PREFIX:-'default'}"
-export __APP=`echo "$APP" | tr '-' '_'`
+export __APP=`echo ${APP} | tr '-' '_'`
 _APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
 VERSION_CODE=$((${_APP}_VERSION_CODE+1))
 BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
@@ -52,6 +49,14 @@ RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
 export BUILD=$((${RP_SEMVER_BUILD_REF}))
 TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
 VERSION=$("$project_dir"/semver.py get)
+
+if [[ $VERSION == '0.0.0' ]]; then
+  echo "Unable to determine version, fetching full history and trying again."
+  git fetch --unshallow || true
+  VERSION=$("$project_dir"/semver.py get)
+fi
+git fetch --tags
+
 RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
 CURRENT_VERSION=$("$project_dir"/semver.py get-current)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
@@ -65,11 +70,25 @@ if [[ $release_type == 'prep' ]]; then
   echo "VERSION_MINOR=$("$project_dir"/semver.py get-minor)" >> release.env
   echo "VERSION_MAJOR=$("$project_dir"/semver.py get-major)" >> release.env
   echo "BUILD_NUMBER=${BUILD_NUMBER}" >> release.env
-  echo "RP_SEMVER_BUILD_REF=$RP_SEMVER_BUILD_REF" >> release.env
+  echo "RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF}" >> release.env
   echo "BUILD=${BUILD}" >> release.env
   echo "RELEASE_SEMVER=${RELEASE_SEMVER}" >> release.env
-  echo "RP_TEMPLATE_NAME=${RP_TEMPLATE_NAME}" >> release.env
   echo "----------------release.env--------------------"
   cat release.env
   echo "-----------------------------------------------"
+  echo "--------------Reference Vars-------------------"
+  echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
+
+  echo "RP_BASE_GIT_DEPTH_BUFFER=${RP_BASE_GIT_DEPTH_BUFFER}"
+
+  echo "RP_BASE_GIT_DEPTH(prior): ${RP_BASE_GIT_DEPTH}"
+  RP_BASE_GIT_DEPTH=$("$project_dir"/semver.py get-git-depth)
+  echo "RP_BASE_GIT_DEPTH(current): ${RP_BASE_GIT_DEPTH}"
+  echo "-----------------------------------------------"
+
+  curl -sS --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
+    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables" --form "key=RP_BASE_GIT_DEPTH" --form "value=${RP_BASE_GIT_DEPTH}"
+
+  curl -sS --request PUT --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
+    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/RP_BASE_GIT_DEPTH" --form "value=${RP_BASE_GIT_DEPTH}"
 fi

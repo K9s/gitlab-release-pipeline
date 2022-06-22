@@ -1,11 +1,10 @@
 .build:alpha:
   variables:
-    SEMVER: ${VERSION}-a${VERSION_CODE}+${BUILD}
-    _PRE_RELEASE: a$VERSION_CODE
-    PRE_RELEASE: a$VERSION_CODE
+    _PRE_RELEASE: a$BUILD_NUMBER
+    PRE_RELEASE: a$BUILD_NUMBER
+    SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'build:debug'
       artifacts: false
       optional: true

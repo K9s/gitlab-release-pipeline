@@ -10,8 +10,8 @@ variables:
     - .docker_base
   script: | 
     #### Running Container ####
-    export SOURCE_IMAGE=$CI_REGISTRY_IMAGE/$DIR:$CI_COMMIT_SHORT_SHA
-    docker pull $SOURCE_IMAGE -q
+    export SOURCE_IMAGE=${CI_REGISTRY_IMAGE}/${DIR}:${CI_COMMIT_SHORT_SHA}
+    docker pull ${SOURCE_IMAGE} -q
     sh run.sh || true
 
 .publish:

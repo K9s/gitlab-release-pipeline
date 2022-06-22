@@ -27,19 +27,19 @@ set:stable:tag:
   script: |
     #### Setting stable tag ####
     set -e
-    cd $DIR
+    cd ${DIR}
     export RP_BUMP=build
-    export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-    $CI_PROJECT_DIR/release.sh check
-    git tag -f $APP-stable
-    git tag -f $APP-$VERSION_MAJOR-stable
-    git tag -f $APP-$VERSION_MAJOR.$VERSION_MINOR-stable
-    git push --delete origin $APP-stable || true
-    git push --delete origin $APP-$VERSION_MAJOR-stable || true
-    git push --delete origin $APP-$VERSION_MAJOR.$VERSION_MINOR-stable || true
-    git push -f origin $APP-stable
-    git push -f origin $APP-$VERSION_MAJOR-stable
-    git push -f origin $APP-$VERSION_MAJOR.$VERSION_MINOR-stable
+    export ALLOWED_RELEASE_BRANCH=${CI_COMMIT_REF_NAME}
+    ${CI_PROJECT_DIR}/release.sh check
+    git tag -f ${APP}-stable
+    git tag -f ${APP}-${VERSION_MAJOR}-stable
+    git tag -f ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable
+    git push --delete origin ${APP}-stable || true
+    git push --delete origin ${APP}-${VERSION_MAJOR}-stable || true
+    git push --delete origin ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable || true
+    git push -f origin ${APP}-stable
+    git push -f origin ${APP}-${VERSION_MAJOR}-stable
+    git push -f origin ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable
   rules:
     - !reference [.release_rules, rules]
   resource_group: $APP-release
@@ -48,4 +48,3 @@ set:stable:tag:
     - job: 'publish:release'
       optional: true
     - job: 'get:version'
-      optional: true

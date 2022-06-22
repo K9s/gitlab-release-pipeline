@@ -10,11 +10,11 @@
   before_script: |
     #### Preparing virtualenv ####
     pip install virtualenv
-    virtualenv venv/$APP
-    source venv/$APP/bin/activate
+    virtualenv venv/${APP}
+    source venv/${APP}/bin/activate
     which python
     ./config.sh || true
-    cd $DIR
+    cd ${DIR}
 
 .base:
   image: python:3.10.4

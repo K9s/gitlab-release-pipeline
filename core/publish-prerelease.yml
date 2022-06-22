@@ -13,7 +13,6 @@ gate:prerelease:
     PUBLISH_TYPE: 'alpha'
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'build:alpha'
       optional: true
     - job: 'gate:prerelease'
@@ -35,7 +34,6 @@ publish:alpha:
     PUBLISH_TYPE: 'debug'
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'build:debug'
       optional: true
     - job: 'gate:prerelease'

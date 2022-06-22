@@ -3,7 +3,6 @@
     TEST_TYPE: 'alpha'
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'build:alpha'
       optional: true
 

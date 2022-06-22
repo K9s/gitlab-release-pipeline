@@ -11,10 +11,10 @@ declare -a StringArray=(
 )
 
 for image in ${StringArray[@]}; do
-   docker pull registry.$CI_SERVER_HOST/ci/registry/$image || docker pull $image
-   docker tag registry.$CI_SERVER_HOST/ci/registry/$image $image || true
-   docker tag $image registry.$CI_SERVER_HOST/ci/registry/$image
-   docker push registry.$CI_SERVER_HOST/ci/registry/$image
+   docker pull registry.${CI_SERVER_HOST}/ci/registry/${image} || docker pull ${image}
+   docker tag registry.${CI_SERVER_HOST}/ci/registry/${image} ${image} || true
+   docker tag ${image} registry.${CI_SERVER_HOST}/ci/registry/${image}
+   docker push registry.${CI_SERVER_HOST}/ci/registry/${image}
 
    echo "${image} updated and pushed to registry"
 done

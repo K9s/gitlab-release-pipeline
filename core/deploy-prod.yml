@@ -16,7 +16,6 @@ gate:prod:
     on_stop: deploy:prod:stop
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'gate:prod'
 
 deploy:prod:
@@ -52,6 +51,5 @@ deploy:prod:stop:
     - !reference [.release_rules, rules]
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'deploy:prod'
   when: manual

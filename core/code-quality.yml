@@ -29,10 +29,9 @@ code_quality:
       cat /etc/resolv.conf | sed -r "s/^(search.*|options.*)/#\1/" > /tmp/resolv && cat /tmp/resolv > /etc/resolv.conf
       apk update
       apk add bash
-      $CI_PROJECT_DIR/codequality-cache.sh
+      ${CI_PROJECT_DIR}/codequality-cache.sh
   needs:
     - job: 'get:version'
-      optional: true
 
 # The following /should work/ but cannot see https://gitlab.com/gitlab-org/ci-cd/codequality/-/merge_requests/37
 
@@ -43,4 +42,4 @@ code_quality:
 #  artifacts:
 #    paths: [gl-code-quality-report.json]
 #  before_script:
-#    - echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login -u "$CI_DEPENDENCY_PROXY_USER" --password-stdin "$CI_DEPENDENCY_PROXY_SERVER"
+#    - echo "${CI_DEPENDENCY_PROXY_PASSWORD}" | docker login -u "${CI_DEPENDENCY_PROXY_USER}" --password-stdin "${CI_DEPENDENCY_PROXY_SERVER}"

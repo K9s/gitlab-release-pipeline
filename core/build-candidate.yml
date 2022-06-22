@@ -1,11 +1,10 @@
 .build:candidate:
   variables:
-    SEMVER: $RELEASE_SEMVER
     _PRE_RELEASE: ''
     PRE_RELEASE: ''
+    SEMVER: $RELEASE_SEMVER
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'build:debug'
       artifacts: false
       optional: true

@@ -2,6 +2,7 @@
 
 import os
 import sys
+from copy import deepcopy
 from typing import Union
 
 import fire
@@ -51,8 +52,7 @@ class SemVer:
 
         self.recursion_depth = 0
 
-        for remote in self.repo.remotes:
-            remote.fetch()
+        self.current_version_depth = 0
 
         self.tag_prefix = TAG_PREFIX.format(self=self)
 
@@ -88,7 +88,7 @@ class SemVer:
             _versions = [x for x in self.versions if
                          x.major == version.major]
         elif bump == 'major':
-            _versions = [x for x in self.versions]
+            _versions = self.versions
         else:
             raise Exception(f'Invalid bump: {bump}')
 
@@ -151,9 +151,14 @@ class SemVer:
                             target: Version = None,
                             register=None,
                             ref='HEAD',
-                            processed_refs=None):
+                            processed_refs=None,
+                            depth=None,
+                            current_depth=0):
+        if depth is None:
+            depth = 0
+
         if register is None:
-            register = [Version('0.0.0rc0')]
+            register = {Version('0.0.0rc0'): depth}
 
         if processed_refs is None:
             processed_refs = []
@@ -176,15 +181,24 @@ class SemVer:
                     version = versions[-1]
 
             if version is None:
+                if current_depth == depth:
+                    depth += 1
+
                 for parent in _ref.parents:
                     self.get_current_version(target=target,
                                              ref=parent.hexsha,
                                              register=register,
-                                             processed_refs=processed_refs)
+                                             processed_refs=processed_refs,
+                                             depth=depth,
+                                             current_depth=deepcopy(depth))
             else:
-                register.append(version)
+                register[version] = depth
 
-        return sorted(register)[-1]
+        current_version = sorted(register.keys())[-1]
+
+        if ref == 'HEAD':
+            self.current_version_depth = register[current_version]
+        return current_version
 
     @parse_version
     def can_bump_to(self,
@@ -261,5 +275,6 @@ if __name__ == "__main__":
         'get-major': lambda: __version.major,
         'get-patch': lambda: __version.micro,
         'get-tag-prefix': lambda: semver.tag_prefix,
+        'get-git-depth': lambda: semver.current_version_depth + int(os.getenv('RP_BASE_GIT_DEPTH_BUFFER', 1)),
         'gen-dotenv': lambda: dotenv(__version, semver)
     })

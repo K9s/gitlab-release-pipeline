@@ -27,5 +27,5 @@ variables:
     pip install twine==4.0
     keyring --disable
     [[ -z "${PRE_RELEASE}" ]] && REPOSITORY=gitlab-central || REPOSITORY=gitlab-project
-    echo "Using repository $REPOSITORY"
+    echo "Using repository ${REPOSITORY}"
     TWINE_NON_INTERACTIVE=True TWINE_PASSWORD=${CI_JOB_TOKEN} python -m twine upload --repository ${REPOSITORY} dist/* --verbose

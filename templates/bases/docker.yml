@@ -26,17 +26,17 @@ variables:
     - |
       #### Building ####
       echo "Pulling CACHE_IMAGE"
-      BASE_IMAGE=$CI_REGISTRY_IMAGE/$APP
-      BUILD_IMAGE=$BASE_IMAGE:build-$CI_PIPELINE_IID-$CI_COMMIT_SHORT_SHA
-      cd $DIR
-      CACHE_IMAGE=$BASE_IMAGE:build-cache
-      docker pull $CACHE_IMAGE -q || true
+      BASE_IMAGE=${CI_REGISTRY_IMAGE}/${APP}
+      BUILD_IMAGE=${BASE_IMAGE}:build-${BUILD}-${CI_COMMIT_SHORT_SHA}
+      cd ${DIR}
+      CACHE_IMAGE=${BASE_IMAGE}:build-cache
+      docker pull ${CACHE_IMAGE} -q || true
       echo "Building Image"
-      docker build --cache-from $CACHE_IMAGE --tag $CACHE_IMAGE --tag $BUILD_IMAGE --build-arg BUILDKIT_INLINE_CACHE=1 $AUX_BUILD_PARAMS .
+      docker build --cache-from ${CACHE_IMAGE} --tag ${CACHE_IMAGE} --tag ${BUILD_IMAGE} --build-arg BUILDKIT_INLINE_CACHE=1 ${AUX_BUILD_PARAMS} .
       echo "Pushing BUILD_IMAGE and CACHE_IMAGE tags"
-      docker push $CACHE_IMAGE -q
-      docker push $BUILD_IMAGE -q
-      echo "DOCKER_IMAGE=$BUILD_IMAGE" >> $CI_PROJECT_DIR/rp.env
+      docker push ${CACHE_IMAGE} -q
+      docker push ${BUILD_IMAGE} -q
+      echo "DOCKER_IMAGE=${BUILD_IMAGE}" >> ${CI_PROJECT_DIR}/rp.env
 
 .test:
   image: $DOCKER_IMAGE
@@ -49,20 +49,20 @@ variables:
     - |
       #### Publishing Container ####
       echo "Pulling SOURCE_IMAGE"
-      SOURCE_IMAGE=$DOCKER_IMAGE
-      docker pull $SOURCE_IMAGE -q
-      IMAGE_TAG=$CI_REGISTRY_IMAGE/$APP:$VERSION$PRE_RELEASE-$CI_COMMIT_SHORT_SHA
+      SOURCE_IMAGE=${DOCKER_IMAGE}
+      docker pull ${SOURCE_IMAGE} -q
+      IMAGE_TAG=${CI_REGISTRY_IMAGE}/${APP}:${VERSION}${PRE_RELEASE}-${CI_COMMIT_SHORT_SHA}
       echo "Pushing IMAGE_TAG"
-      docker tag $SOURCE_IMAGE $IMAGE_TAG
-      docker push $IMAGE_TAG -q
-      echo "DOCKER_IMAGE=$IMAGE_TAG" > $CI_PROJECT_DIR/$DIR/publish.env
+      docker tag ${SOURCE_IMAGE} ${IMAGE_TAG}
+      docker push ${IMAGE_TAG} -q
+      echo "DOCKER_IMAGE=${IMAGE_TAG}" > ${CI_PROJECT_DIR}/${DIR}/publish.env
       [[ -z "${PRE_RELEASE}" ]] && (
           echo "Is /not/ Pre-Release, pushing latest and version tags" && 
-          docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:latest && 
-          docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:$VERSION && 
-          docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:$VERSION_MAJOR && 
-          docker tag $SOURCE_IMAGE $CI_REGISTRY_IMAGE/$APP:$VERSION_MAJOR.$VERSION_MINOR && 
-          docker push $CI_REGISTRY_IMAGE/$APP:latest -q && 
-          docker push $CI_REGISTRY_IMAGE/$APP:$VERSION -q && 
-          docker push $CI_REGISTRY_IMAGE/$APP:$VERSION_MAJOR -q && 
-          docker push $CI_REGISTRY_IMAGE/$APP:$VERSION_MAJOR.$VERSION_MINOR -q) || echo "Is Pre-Release, not pushing latest or version tags"
+          docker tag ${SOURCE_IMAGE} ${CI_REGISTRY_IMAGE}/${APP}:latest && 
+          docker tag ${SOURCE_IMAGE} ${CI_REGISTRY_IMAGE}/${APP}:${VERSION} && 
+          docker tag ${SOURCE_IMAGE} ${CI_REGISTRY_IMAGE}/${APP}:${VERSION_MAJOR} && 
+          docker tag ${SOURCE_IMAGE} ${CI_REGISTRY_IMAGE}/${APP}:${VERSION_MAJOR}.${VERSION_MINOR} && 
+          docker push ${CI_REGISTRY_IMAGE}/${APP}:latest -q && 
+          docker push ${CI_REGISTRY_IMAGE}/${APP}:${VERSION} -q && 
+          docker push ${CI_REGISTRY_IMAGE}/${APP}:${VERSION_MAJOR} -q && 
+          docker push ${CI_REGISTRY_IMAGE}/${APP}:${VERSION_MAJOR}.${VERSION_MINOR} -q) || echo "Is Pre-Release, not pushing latest or version tags"

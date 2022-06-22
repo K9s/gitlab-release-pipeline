@@ -1,11 +1,10 @@
 .build:debug:
   variables:
-    SEMVER: ${VERSION}-b${VERSION_CODE}+${BUILD}
-    _PRE_RELEASE: b$VERSION_CODE
-    PRE_RELEASE: b$VERSION_CODE
+    _PRE_RELEASE: b$BUILD_NUMBER
+    PRE_RELEASE: b$BUILD_NUMBER
+    SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'lint:check'
       optional: true
 

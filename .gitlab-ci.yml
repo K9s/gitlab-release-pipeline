@@ -117,8 +117,8 @@ publish:scripts:
   stage: prebuild
   script:
     - echo 'Publishing release scripts'
-    - echo "CI_COMMIT_SHA=$CI_COMMIT_SHA" > .config/pipeline.release
-    - echo "CI_PIPELINE_URL=$CI_PIPELINE_URL" >> .config/pipeline.release
+    - echo "CI_COMMIT_SHA=${CI_COMMIT_SHA}" > .config/pipeline.release
+    - echo "CI_PIPELINE_URL=${CI_PIPELINE_URL}" >> .config/pipeline.release
   artifacts:
     paths:
       - .config/*

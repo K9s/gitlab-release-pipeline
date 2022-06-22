@@ -7,26 +7,26 @@ gate:release:
       #### SemVer Validation ####
       set -e
       
-      cd $DIR
+      cd ${DIR}
       [[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped to ${VERSION_BUMPED}, not doing release" && exit 1; }
-      echo "Expected to release $VERSION...checking for issues..."
-      export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
-      $CI_PROJECT_DIR/release.sh check
+      echo "Expected to release ${VERSION}...checking for issues..."
+      export ALLOWED_RELEASE_BRANCH=${CI_COMMIT_REF_NAME}
+      ${CI_PROJECT_DIR}/release.sh check
       echo "Release is a GO!"
     - |
       #### Bump Version Code ####
       set -e
       
-      export __APP=`echo "$APP" | tr '-' '_'`
+      export __APP=`echo ${APP} | tr '-' '_'`
       _APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
       
       VERSION_CODE_CURRENT=$((${_APP}_VERSION_CODE))
-      if [[ $VERSION_CODE_CURRENT -eq 0 ]]; then
+      if [[ ${VERSION_CODE_CURRENT} -eq 0 ]]; then
         RESULT=$(curl -sS --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables" --form "key=${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
       else
-        if ! [[ $VERSION_CODE -eq $VERSION_CODE_CURRENT+1 ]]; then
-          echo "Woops, looks like VERSION_CODE: $VERSION_CODE for $APP was release already!  Please re-run pipeline."
+        if ! [[ ${VERSION_CODE} -eq ${VERSION_CODE_CURRENT}+1 ]]; then
+          echo "Woops, looks like VERSION_CODE: ${VERSION_CODE} for ${APP} was release already!  Please re-run pipeline."
           exit 1
         fi
         RESULT=$(curl -sS --request PUT --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
@@ -48,7 +48,6 @@ gate:release:
     PUBLISH_TYPE: 'candidate'
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'build:candidate'
       optional: true
     - job: 'gate:release'
@@ -69,7 +68,6 @@ publish:release:
   stage: release
   needs:
     - job: 'get:version'
-      optional: true
     - job: 'gate:release'
     - job: 'build:candidate'
       optional: true
@@ -84,7 +82,7 @@ gitlab:release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   stage: release
   script:
-    - echo "Releasing $APP version $VERSION"
+    - echo "Releasing ${APP} version ${VERSION}"
   release:
     name: $RP_GITLAB_RELEASE_PREFIX $TAG
     description: $DESCRIPTION
