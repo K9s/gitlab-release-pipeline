@@ -51,8 +51,7 @@ TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
 
 if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
   echo "Unable to determine version, fetching full history and trying again."
-  git fetch --unshallow || true
-  git fetch --tags &> /dev/null
+  git fetch --unshallow --quiet || true
 fi
 
 VERSION=$("$project_dir"/semver.py get)
