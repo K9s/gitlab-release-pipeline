@@ -48,14 +48,14 @@ BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
 RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
 export BUILD=$((${RP_SEMVER_BUILD_REF}))
 TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
-VERSION=$("$project_dir"/semver.py get)
 
-if [[ $VERSION == '0.0.0' ]]; then
+if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
   echo "Unable to determine version, fetching full history and trying again."
   git fetch --unshallow || true
-  VERSION=$("$project_dir"/semver.py get)
+  git fetch --tags &> /dev/null
 fi
-git fetch --tags
+
+VERSION=$("$project_dir"/semver.py get)
 
 RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
 CURRENT_VERSION=$("$project_dir"/semver.py get-current)
@@ -79,16 +79,6 @@ if [[ $release_type == 'prep' ]]; then
   echo "--------------Reference Vars-------------------"
   echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
 
-  echo "RP_BASE_GIT_DEPTH_BUFFER=${RP_BASE_GIT_DEPTH_BUFFER}"
-
-  echo "RP_BASE_GIT_DEPTH(prior): ${RP_BASE_GIT_DEPTH}"
-  RP_BASE_GIT_DEPTH=$("$project_dir"/semver.py get-git-depth)
-  echo "RP_BASE_GIT_DEPTH(current): ${RP_BASE_GIT_DEPTH}"
-  echo "-----------------------------------------------"
-
-  curl -sS --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
-    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables" --form "key=RP_BASE_GIT_DEPTH" --form "value=${RP_BASE_GIT_DEPTH}"
-
-  curl -sS --request PUT --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
-    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/RP_BASE_GIT_DEPTH" --form "value=${RP_BASE_GIT_DEPTH}"
+  CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
+  echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
 fi

@@ -275,6 +275,6 @@ if __name__ == "__main__":
         'get-major': lambda: __version.major,
         'get-patch': lambda: __version.micro,
         'get-tag-prefix': lambda: semver.tag_prefix,
-        'get-git-depth': lambda: semver.current_version_depth + int(os.getenv('RP_BASE_GIT_DEPTH_BUFFER', 1)),
+        'current-version-depth': lambda: semver.current_version_depth,
         'gen-dotenv': lambda: dotenv(__version, semver)
     })

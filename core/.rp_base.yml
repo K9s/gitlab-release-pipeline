@@ -1,4 +1,4 @@
 .rp_base:
   image: $RP_BASE_IMAGE:$RP_IMAGE_TAG
   variables:
-    GIT_DEPTH: $RP_BASE_GIT_DEPTH
+    GIT_DEPTH: 10
