@@ -47,15 +47,14 @@ VERSION_CODE=$((${_APP}_VERSION_CODE+1))
 BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
 RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
 export BUILD=$((${RP_SEMVER_BUILD_REF}))
-TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
 
 if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
   echo "Unable to determine version, fetching full history and trying again."
   git fetch --unshallow --quiet || true
 fi
-
 VERSION=$("$project_dir"/semver.py get)
 
+TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
 RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
 CURRENT_VERSION=$("$project_dir"/semver.py get-current)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
@@ -80,4 +79,5 @@ if [[ $release_type == 'prep' ]]; then
 
   CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
   echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
+  echo "-----------------------------------------------"
 fi
