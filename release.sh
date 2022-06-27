@@ -3,17 +3,6 @@ set -e
 
 release_type=${1}
 
-commit=${CI_COMMIT_SHA:-$(git rev-parse HEAD)}
-branch=${ALLOWED_RELEASE_BRANCH:-$CI_DEFAULT_BRANCH}
-
-if ! git branch -a --contains "${commit}" | grep -e "^[* ]*remotes/origin/${branch}\$"
-then
-  echo -e "###\n### Not on ${branch}. Only the branch defined by ALLOWED_RELEASE_BRANCH can be released.\n###"
-  exit 1
-else
-  echo -e "###\n### Release ${release_type} for ${commit} on ${branch}\n###"
-fi
-
 if [[ -z "${APP}" ]]; then
   # shellcheck disable=SC2016
   echo '${APP} is unset deriving from folder name'
@@ -35,8 +24,6 @@ else
   GIT_URL=$(echo ${GIT_URL} | sed -r "s/^(.+?\/\/)(.+?):(.+?)@(.+)$/\1${RELEASE_USER}:${RELEASE_PASS}@\4/")
   git remote set-url origin ${GIT_URL}
 fi
-
-git checkout "${branch}"
 
 project_dir=$(dirname "$0")
 
@@ -74,11 +61,12 @@ if [[ $release_type == 'prep' ]]; then
   echo "----------------release.env--------------------"
   cat release.env
   echo "-----------------------------------------------"
-  echo "--------------Reference Vars-------------------"
-  echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
-  echo "TAG_PREFIX: ${TAG_PREFIX}"
-
-  CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
-  echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
-  echo "-----------------------------------------------"
 fi
+
+echo "--------------Reference Vars-------------------"
+echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
+echo "TAG_PREFIX: ${TAG_PREFIX}"
+
+CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
+echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
+echo "-----------------------------------------------"
