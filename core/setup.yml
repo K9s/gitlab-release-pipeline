@@ -29,7 +29,7 @@ set:stable:tag:
     set -e
     cd ${DIR}
     export RP_BUMP=build
-    export ALLOWED_RELEASE_BRANCH=${CI_COMMIT_REF_NAME}
+    export ALLOWED_RELEASE_BRANCH=$CI_COMMIT_REF_NAME
     ${CI_PROJECT_DIR}/release.sh check
     git tag -f ${APP}-stable
     git tag -f ${APP}-${VERSION_MAJOR}-stable

@@ -76,6 +76,7 @@ if [[ $release_type == 'prep' ]]; then
   echo "-----------------------------------------------"
   echo "--------------Reference Vars-------------------"
   echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
+  echo "TAG_PREFIX: ${TAG_PREFIX}"
 
   CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
   echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
