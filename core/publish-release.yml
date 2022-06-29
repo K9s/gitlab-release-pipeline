@@ -10,6 +10,7 @@ gate:release:
       cd ${DIR}
       [[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped to ${VERSION_BUMPED}, not doing release" && exit 1; }
       echo "Expected to release ${VERSION}...checking for issues..."
+      export RP_SEMVER_BUILD_REF=BUILD
       unset SEMVER
       ${CI_PROJECT_DIR}/release.sh check
       echo "Release is a GO!"

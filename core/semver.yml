@@ -10,6 +10,8 @@
     
     cd ${DIR}
     export RP_BUMP=$(echo ${CI_JOB_NAME} | cut -d ':' -f 2)
+    export RP_SEMVER_BUILD_REF=BUILD
+    unset SEMVER
     ${CI_PROJECT_DIR}/release.sh check
     TAG_PREFIX=$(${CI_PROJECT_DIR}/semver.py get-tag-prefix)
     BUMP_VERSION=$(${CI_PROJECT_DIR}/semver.py get)
