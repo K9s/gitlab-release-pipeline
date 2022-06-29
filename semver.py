@@ -267,29 +267,29 @@ if __name__ == "__main__":
                 'Setting BUILD envar is not valid when SEMVER is set'
             )
     else:
-        FULL_VERSION = os.getenv('VERSION')
+        VERSION = os.getenv('VERSION')
 
-        if FULL_VERSION == "$VERSION":
-            FULL_VERSION = None
+        if VERSION == "$VERSION":
+            VERSION = None
 
-        if FULL_VERSION:
-            FULL_VERSION = _parse_version(semver, FULL_VERSION)
-            if not FULL_VERSION.local:
-                FULL_VERSION = _parse_version(semver, f'{FULL_VERSION.public}+{os.getenv("BUILD", 1)}')
+        if VERSION:
+            VERSION = _parse_version(semver, VERSION)
+            if not VERSION.local:
+                VERSION = _parse_version(semver, f'{VERSION.public}+{os.getenv("BUILD", 1)}')
 
-            if os.getenv("BUILD") and os.getenv("BUILD") != FULL_VERSION.local:
+            if os.getenv("BUILD") and os.getenv("BUILD") != VERSION.local:
                 raise EnvironmentError(
-                    f'BUILD envar ({os.getenv("BUILD")}) conflicts with build from VERSION ({FULL_VERSION.local})'
+                    f'BUILD envar ({os.getenv("BUILD")}) conflicts with build from VERSION ({VERSION.local})'
                 )
 
-            semver.build = FULL_VERSION.local
+            semver.build = VERSION.local
         else:
             semver.build = os.getenv("BUILD", 1)
 
         __current_version = semver.get_current_version()
         __version = semver.can_bump_to(current_version=__current_version,
                                        bump=os.getenv('RP_BUMP', 'patch'),
-                                       version=FULL_VERSION)
+                                       version=VERSION)
 
     fire.Fire({
         'get': lambda: __version.public,
