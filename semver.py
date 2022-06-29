@@ -26,8 +26,7 @@ def _parse_version(self, version: Union[Version, str]):
         _version = parse_semver(str(version).
                                 replace(self.tag_prefix, '').
                                 replace('_', '+').
-                                replace('bump-', '').
-                                split('-')[-1])
+                                replace('bump-', ''))
 
     if not isinstance(_version, Version) and not str(version).endswith('stable'):
         raise Exception(f'Unable to parse version: {_version} as Version')
@@ -57,7 +56,7 @@ class SemVer:
 
         self.tag_prefix = TAG_PREFIX.format(self=self)
 
-        self.build = None
+        self.build = 0
 
         self.tags = {str(_parse_version(self, version=x.name)): {
             'tag': x,
@@ -93,32 +92,78 @@ class SemVer:
         else:
             raise Exception(f'Invalid bump: {bump}')
 
-        return _versions
+        return deepcopy(_versions)
 
     @parse_version
     def get_latest_version(self,
                            bump: str = 'major',
                            version: Union[Version, str] = '0.0.0'):
-        if bump == 'build':
-            _versions = self.get_versions(bump='build', version=version)
-            if not _versions:
+
+        _versions = self.get_versions(bump=bump, version=version)
+
+        if not _versions:
+            if bump == 'build':
                 _versions.append(Version(f'{version.major}.{version.minor}.{version.micro}+{self.build}'))
-        elif bump == 'patch':
-            _versions = self.get_versions(bump='patch', version=version)
-            if not _versions:
+            elif bump == 'patch':
                 _versions.append(Version(f'{version.major}.{version.minor}.0+{self.build}'))
-        elif bump == 'minor':
-            _versions = self.get_versions(bump='minor', version=version)
-            if not _versions:
+            elif bump == 'minor':
                 _versions.append(Version(f'{version.major}.0.0+{self.build}'))
-        elif bump == 'major':
-            _versions = self.get_versions(bump='major', version=version)
-            if not _versions:
+            elif bump == 'major':
                 _versions.append(Version(f"0.0.0+{self.build}"))
-        else:
-            raise Exception(f'Invalid bump: {bump}')
 
         return sorted(_versions)[-1]
+
+    def get_current_version(self,
+                            target: Version = None,
+                            ref='HEAD',
+                            _register=None,
+                            _processed_refs=None,
+                            _depth=None,
+                            _current_depth=0):
+        if _depth is None:
+            _depth = 0
+
+        if _register is None:
+            _register = {Version('0.0.0rc0'): _depth}
+
+        if _processed_refs is None:
+            _processed_refs = []
+
+        try:
+            _ref = self.repo.commit(ref)  # Catches situation where parent is part of a merge commit
+        except ValueError:
+            return False
+
+        if _ref not in _processed_refs:
+            _processed_refs.append(_ref)
+            version = None
+            if _ref.hexsha in self.version_tags:
+                versions = self.version_tags[_ref.hexsha]
+                if target:
+                    versions = [x for x in versions if x.public == target.public]
+                    if versions:
+                        version = versions[-1]
+                else:
+                    version = versions[-1]
+
+            if version is None:
+                if _current_depth == _depth:
+                    _depth += 1
+
+                for parent in _ref.parents:
+                    self.get_current_version(target=target,
+                                             ref=parent.hexsha,
+                                             _register=_register,
+                                             _processed_refs=_processed_refs,
+                                             _depth=_depth,
+                                             _current_depth=deepcopy(_depth))
+            else:
+                _register[version] = _depth
+
+        if ref == 'HEAD':
+            current_version = sorted(_register.keys())[-1]
+            self.current_version_depth = _register[current_version]
+            return current_version
 
     @parse_version
     def get_next_version(self,
@@ -148,64 +193,11 @@ class SemVer:
 
         return next_version
 
-    def get_current_version(self,
-                            target: Version = None,
-                            register=None,
-                            ref='HEAD',
-                            processed_refs=None,
-                            depth=None,
-                            current_depth=0):
-        if depth is None:
-            depth = 0
-
-        if register is None:
-            register = {Version('0.0.0rc0'): depth}
-
-        if processed_refs is None:
-            processed_refs = []
-
-        try:
-            _ref = self.repo.commit(ref)  # Catches situation where parent is part of a merge commit
-        except ValueError:
-            return False
-
-        if _ref not in processed_refs:
-            processed_refs.append(_ref)
-            version = None
-            if _ref.hexsha in self.version_tags:
-                versions = self.version_tags[_ref.hexsha]
-                if target:
-                    versions = [x for x in versions if x.public == target.public]
-                    if versions:
-                        version = versions[-1]
-                else:
-                    version = versions[-1]
-
-            if version is None:
-                if current_depth == depth:
-                    depth += 1
-
-                for parent in _ref.parents:
-                    self.get_current_version(target=target,
-                                             ref=parent.hexsha,
-                                             register=register,
-                                             processed_refs=processed_refs,
-                                             depth=depth,
-                                             current_depth=deepcopy(depth))
-            else:
-                register[version] = depth
-
-        current_version = sorted(register.keys())[-1]
-
-        if ref == 'HEAD':
-            self.current_version_depth = register[current_version]
-        return current_version
-
     @parse_version
     def can_bump_to(self,
-                    current_version: Version,
                     bump: str = 'patch',
                     version: Union[Version, str, None] = None):
+        current_version = self.get_current_version()
         if version is None:
             version = self.get_next_version(bump=bump, version=current_version)
 
@@ -260,7 +252,7 @@ if __name__ == "__main__":
 
     if SEMVER:
         __version = _parse_version(semver, version=SEMVER)
-        semver.build = 0 if __version.local is None else __version.local
+        semver.build = 1 if __version.local is None else __version.local
         __current_version = __version
         if os.getenv("BUILD"):
             raise EnvironmentError(
@@ -287,8 +279,7 @@ if __name__ == "__main__":
             semver.build = os.getenv("BUILD", 1)
 
         __current_version = semver.get_current_version()
-        __version = semver.can_bump_to(current_version=__current_version,
-                                       bump=os.getenv('RP_BUMP', 'patch'),
+        __version = semver.can_bump_to(bump=os.getenv('RP_BUMP', 'patch'),
                                        version=VERSION)
 
     fire.Fire({
