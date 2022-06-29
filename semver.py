@@ -282,6 +282,8 @@ if __name__ == "__main__":
                 )
 
             semver.build = FULL_VERSION.local
+        else:
+            semver.build = os.getenv("BUILD", 0)
 
         __current_version = semver.get_current_version()
         __version = semver.can_bump_to(current_version=__current_version,

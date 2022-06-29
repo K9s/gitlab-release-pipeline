@@ -110,7 +110,7 @@ script-python:
     - if: $EXTENDED_PIPELINE_INTEGRATIONS
 
 publish:scripts:
-  stage: prebuild
+  stage: build
   script:
     - echo 'Publishing release scripts'
     - echo "CI_COMMIT_SHA=${CI_COMMIT_SHA}" > .config/pipeline.release
