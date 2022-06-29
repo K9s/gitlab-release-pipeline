@@ -274,16 +274,17 @@ if __name__ == "__main__":
 
         if FULL_VERSION:
             FULL_VERSION = _parse_version(semver, FULL_VERSION)
-            if FULL_VERSION.local is None:
-                FULL_VERSION = _parse_version(semver, f'{FULL_VERSION.public}+{os.getenv("BUILD", 0)}')
-            elif os.getenv("BUILD") and os.getenv("BUILD") != FULL_VERSION.local:
+            if not FULL_VERSION.local:
+                FULL_VERSION = _parse_version(semver, f'{FULL_VERSION.public}+{os.getenv("BUILD", 1)}')
+
+            if os.getenv("BUILD") and os.getenv("BUILD") != FULL_VERSION.local:
                 raise EnvironmentError(
                     f'BUILD envar ({os.getenv("BUILD")}) conflicts with build from VERSION ({FULL_VERSION.local})'
                 )
 
             semver.build = FULL_VERSION.local
         else:
-            semver.build = os.getenv("BUILD", 0)
+            semver.build = os.getenv("BUILD", 1)
 
         __current_version = semver.get_current_version()
         __version = semver.can_bump_to(current_version=__current_version,
