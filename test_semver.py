@@ -79,7 +79,7 @@ def test_get_version_patch_bump():
     assert semver.get_latest_version(bump='patch', version='0.2.0') == get_expected_version('0.2.1')
     assert semver.get_latest_version(bump='patch', version='0.2.100') == get_expected_version('0.2.1')
     assert semver.get_latest_version(bump='patch', version='0.2.1') == get_expected_version('0.2.1')
-    assert semver.get_latest_version(bump='patch', version='9.8.7') == Version('9.8.0+0')
+    assert semver.get_latest_version(bump='patch', version='9.8.7') == Version('9.8.0+1')
 
 
 def test_get_version_minor_bump():
@@ -87,8 +87,8 @@ def test_get_version_minor_bump():
     assert semver.get_latest_version(bump='minor', version='0.1.0') == get_expected_version('0.2.1')
     assert semver.get_latest_version(bump='minor', version='0.1.100') == get_expected_version('0.2.1')
     assert semver.get_latest_version(bump='minor', version='1.0.0') == get_expected_version('1.0.0')
-    assert semver.get_latest_version(bump='minor', version='2.0.0') == Version('2.0.0+0')
-    assert semver.get_latest_version(bump='minor', version='9.8.7') == Version('9.0.0+0')
+    assert semver.get_latest_version(bump='minor', version='2.0.0') == Version('2.0.0+1')
+    assert semver.get_latest_version(bump='minor', version='9.8.7') == Version('9.0.0+1')
 
 
 def test_get_version_major_bump():
@@ -106,17 +106,17 @@ def test_get_version_same_as_latest():
 
 
 def test_can_get_next_version_patch():
-    assert semver.get_next_version(bump='patch', version=Version('0.0.0')) == Version('0.0.4+0')
-    assert semver.get_next_version(bump='patch', version=Version('0.1.2')) == Version('0.1.16+0')
-    assert semver.get_next_version(bump='patch', version=Version('0.1.15')) == Version('0.1.16+0')
+    assert semver.get_next_version(bump='patch', version=Version('0.0.0')) == Version('0.0.4+1')
+    assert semver.get_next_version(bump='patch', version=Version('0.1.2')) == Version('0.1.16+1')
+    assert semver.get_next_version(bump='patch', version=Version('0.1.15')) == Version('0.1.16+1')
 
 
 def test_can_get_next_version_minor():
-    assert semver.get_next_version(bump='minor', version=Version('0.0.0')) == Version('0.3.0+0')
+    assert semver.get_next_version(bump='minor', version=Version('0.0.0')) == Version('0.3.0+1')
 
 
 def test_can_get_next_version_major():
-    assert semver.get_next_version(bump='major', version=Version('0.0.0')) == Version('5.0.0+0')
+    assert semver.get_next_version(bump='major', version=Version('0.0.0')) == Version('5.0.0+1')
 
 
 def test_can_bump():

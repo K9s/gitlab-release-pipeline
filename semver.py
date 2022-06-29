@@ -56,7 +56,7 @@ class SemVer:
 
         self.tag_prefix = TAG_PREFIX.format(self=self)
 
-        self.build = 0
+        self.build = 1
 
         self.tags = {str(_parse_version(self, version=x.name)): {
             'tag': x,
@@ -225,7 +225,7 @@ class SemVer:
             if version.public != versions[-1].public:
                 is_older_version = True
 
-        if is_older_version is True:
+        if is_older_version is True and int(self.build) > 0:
             raise EnvironmentError(
                 f'Unable to {bump} bump {self.app}. Version {version} is not newer then {versions[-1]}!')
 
