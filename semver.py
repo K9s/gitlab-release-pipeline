@@ -252,8 +252,8 @@ if __name__ == "__main__":
 
     if SEMVER:
         __version = _parse_version(semver, version=SEMVER)
-        semver.build = 1 if __version.local is None else __version.local
-        __current_version = __version
+        semver.build = __version.local if __version.local else 1
+        __current_version = semver.get_current_version()
         if os.getenv("BUILD"):
             raise EnvironmentError(
                 'Setting BUILD envar is not valid when SEMVER is set'
@@ -265,7 +265,7 @@ if __name__ == "__main__":
             VERSION = None
 
         if VERSION:
-            VERSION = _parse_version(semver, VERSION)
+            VERSION = _parse_version(semver, version=VERSION)
             if not VERSION.local:
                 VERSION = _parse_version(semver, f'{VERSION.public}+{os.getenv("BUILD", 1)}')
 
