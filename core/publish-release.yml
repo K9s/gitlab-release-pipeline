@@ -69,8 +69,7 @@ publish:candidate:
       when: never
     - !reference [.release_rules, rules]
 
-.gitlab:release:
-  stage: release
+.gitlab:release:needs:
   needs:
     - job: 'set:version'
     - job: 'gate:release'
@@ -80,6 +79,11 @@ publish:candidate:
       optional: true
     - job: 'publish:candidate'
       optional: true
+
+.gitlab:release:
+  stage: release
+  needs:
+    - !reference [.gitlab:release:needs, needs]
 
 gitlab:release:
   extends:
