@@ -14,7 +14,7 @@ if [[ -z "${APP}" ]]; then
 fi
 
 if [[ -z "${SEMVER}" ]]; then
-    echo
+    echo "Warning SEMVER set !!! This will result in SemVer checks being skipped!"
 fi
 
 # Work around the limitation where gitlab runners can't push to repos.

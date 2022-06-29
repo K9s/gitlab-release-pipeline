@@ -126,7 +126,7 @@ set:stable:tag:
   stage: postrelease
   script: |
     #### Setting stable tag ####
-    ./release.sh prep
+    ./release.sh check
     git tag -f stable
     git push --delete origin stable || true
     git push -f origin stable
