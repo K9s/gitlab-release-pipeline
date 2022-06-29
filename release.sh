@@ -34,6 +34,7 @@ VERSION_CODE=$((${_APP}_VERSION_CODE+1))
 BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
 RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
 export BUILD=$((${RP_SEMVER_BUILD_REF}))
+export BUILD=$("$project_dir"/semver.py get-build)
 
 if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
   echo "Unable to determine version, fetching full history and trying again."
@@ -44,7 +45,6 @@ VERSION=$("$project_dir"/semver.py get)
 TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
 RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
 CURRENT_VERSION=$("$project_dir"/semver.py get-current)
-export BUILD=$("$project_dir"/semver.py get-build)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
 if [[ $release_type == 'prep' ]]; then
   echo "TAG=${TAG_PREFIX}${RELEASE_SEMVER}" > release.env
@@ -72,3 +72,8 @@ echo "TAG_PREFIX: ${TAG_PREFIX}"
 CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
 echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
 echo "-----------------------------------------------"
+
+if [[ $release_type == 'release' && $BUILD -eq 0 ]]; then
+  echo "Build: ${BUILD} is not valid for releases"
+  exit -1
+fi

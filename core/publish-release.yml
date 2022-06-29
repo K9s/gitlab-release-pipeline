@@ -12,7 +12,7 @@ gate:release:
       echo "Expected to release ${VERSION}...checking for issues..."
       export RP_SEMVER_BUILD_REF=BUILD
       unset SEMVER
-      ${CI_PROJECT_DIR}/release.sh check
+      ${CI_PROJECT_DIR}/release.sh release
       echo "Release is a GO!"
     - |
       #### Bump Version Code ####

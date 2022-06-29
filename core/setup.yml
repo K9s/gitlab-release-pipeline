@@ -32,7 +32,7 @@ set:stable:tag:
     export RP_IGNORE_ALREADY_TAGGED=True
     export RP_SEMVER_BUILD_REF=BUILD
     unset SEMVER
-    ${CI_PROJECT_DIR}/release.sh check
+    ${CI_PROJECT_DIR}/release.sh release
     git tag -f ${APP}-stable
     git tag -f ${APP}-${VERSION_MAJOR}-stable
     git tag -f ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable
