@@ -127,7 +127,7 @@ class SemVer:
         latest_version = self.get_latest_version(bump=bump, version=version)
 
         if bump == 'build':
-            next_version = Version(f'{version.public}+{self.build}')
+            next_version = Version(f'{latest_version.public}+{self.build}')
         elif bump == 'patch':
             if latest_version in self.versions:
                 next_version = Version(f'{latest_version.major}.{latest_version.minor}.{latest_version.micro + 1}+{self.build}')
