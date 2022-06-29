@@ -44,6 +44,7 @@ VERSION=$("$project_dir"/semver.py get)
 TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
 RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
 CURRENT_VERSION=$("$project_dir"/semver.py get-current)
+export BUILD=$("$project_dir"/semver.py get-build)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
 if [[ $release_type == 'prep' ]]; then
   echo "TAG=${TAG_PREFIX}${RELEASE_SEMVER}" > release.env
@@ -52,6 +53,7 @@ if [[ $release_type == 'prep' ]]; then
   echo "VERSION=${VERSION}" >> release.env
   echo "VERSION_CODE=${VERSION_CODE}" >> release.env
   echo "CURRENT_VERSION=${CURRENT_VERSION}" >> release.env
+  echo "VERSION_PATCH=$("$project_dir"/semver.py get-patch)" >> release.env
   echo "VERSION_MINOR=$("$project_dir"/semver.py get-minor)" >> release.env
   echo "VERSION_MAJOR=$("$project_dir"/semver.py get-major)" >> release.env
   echo "BUILD_NUMBER=${BUILD_NUMBER}" >> release.env

@@ -29,6 +29,8 @@ set:stable:tag:
     set -e
     cd ${DIR}
     export RP_BUMP=build
+    export RP_IGNORE_ALREADY_TAGGED=True
+    unset SEMVER
     ${CI_PROJECT_DIR}/release.sh check
     git tag -f ${APP}-stable
     git tag -f ${APP}-${VERSION_MAJOR}-stable

@@ -38,10 +38,6 @@ variables:
 
 .pipeline_integration_base:
   stage: integration
-  needs:
-    - job: 'publish:scripts'
-    - job: 'base-image'
-      optional: true
 
 base-image:
   stage: build

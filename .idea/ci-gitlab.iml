@@ -4,5 +4,8 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="mobile-ci" />
+    <orderEntry type="module" module-name="HiRoad" />
+    <orderEntry type="module" module-name="android-design-system" />
   </component>
 </module>
