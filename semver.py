@@ -118,7 +118,7 @@ class SemVer:
         else:
             raise Exception(f'Invalid bump: {bump}')
 
-        return _versions[-1]
+        return sorted(_versions)[-1]
 
     @parse_version
     def get_next_version(self,
