@@ -9,14 +9,18 @@ gate:prod:
       when: on_success
     - !reference [.release_rules, rules]
 
+.deploy:prod:needs:
+  needs:
+    - job: 'set:version'
+    - job: 'gate:prod'
+
 .deploy:prod:
   environment:
     deployment_tier: production
     name: prod
     on_stop: deploy:prod:stop
   needs:
-    - job: 'set:version'
-    - job: 'gate:prod'
+    - !reference [.deploy:prod:needs, needs]
 
 deploy:prod:
   extends:

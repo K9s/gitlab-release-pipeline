@@ -8,6 +8,11 @@ gate:dev:
     - !reference [.non-release_rules, rules]
   when: on_success
 
+.deploy:dev:needs:
+  needs:
+    - job: 'set:version'
+    - job: 'gate:dev'
+
 .deploy:dev:
   environment:
     deployment_tier: development
@@ -15,8 +20,7 @@ gate:dev:
     on_stop: deploy:dev:stop
     auto_stop_in: 1 hour
   needs:
-    - job: 'set:version'
-    - job: 'gate:dev'
+    - !reference [.deploy:dev:needs, needs]
 
 deploy:dev:
   extends:

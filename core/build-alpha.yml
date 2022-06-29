@@ -1,13 +1,17 @@
+.build:alpha:needs:
+  needs:
+    - job: 'set:version'
+    - job: 'build:debug'
+      artifacts: false
+      optional: true
+
 .build:alpha:
   variables:
     _PRE_RELEASE: a$BUILD_NUMBER
     PRE_RELEASE: a$BUILD_NUMBER
     SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
   needs:
-    - job: 'set:version'
-    - job: 'build:debug'
-      artifacts: false
-      optional: true
+    - !reference [.build:alpha:needs, needs]
 
 build:alpha:
   extends:

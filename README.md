@@ -382,7 +382,7 @@ TODO
 
 TODO
 
-#### `publish:release`
+#### `publish:candidate`
 
 TODO
 
@@ -517,7 +517,7 @@ example, you can define generally how a build occurs in `.build` but have a more
 - `.lint`, `.lint:check`
 - `.build`, `.build:debug`, `.build:candidate` `.build:alpha`
 - `.test`, `.test:debug` `.test:candidate`, `.test:alpha`
-- `.publish`, `.publish:alpha` `.publish:debug`, `.publish:release`, `.gitlab:release`
+- `.publish`, `.publish:alpha` `.publish:debug`, `.publish:candidate`, `.gitlab:release`
 - `.deploy`, `.deploy:dev`, `.deploy:preprod`, `.deploy:prod`
 - `.deploy:stop`, `.deploy:dev:stop`, `.deploy:preprod:stop`, `.deploy:prod:stop`
 

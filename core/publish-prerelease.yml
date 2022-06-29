@@ -8,14 +8,18 @@ gate:prerelease:
       when: never
     - if: $CI_COMMIT_REF_NAME
 
-.publish:alpha:
-  variables:
-    PUBLISH_TYPE: 'alpha'
+.publish:alpha:needs:
   needs:
     - job: 'set:version'
     - job: 'build:alpha'
       optional: true
     - job: 'gate:prerelease'
+
+.publish:alpha:
+  variables:
+    PUBLISH_TYPE: 'alpha'
+  needs:
+    - !reference [.publish:alpha:needs, needs]
 
 publish:alpha:
   extends:
@@ -29,14 +33,18 @@ publish:alpha:
       when: never
     - !reference [.non-release_rules, rules]
 
-.publish:debug:
-  variables:
-    PUBLISH_TYPE: 'debug'
+.publish:debug:needs:
   needs:
     - job: 'set:version'
     - job: 'build:debug'
       optional: true
     - job: 'gate:prerelease'
+
+.publish:debug:
+  variables:
+    PUBLISH_TYPE: 'debug'
+  needs:
+    - !reference [.publish:debug:needs, needs]
 
 publish:debug:
   extends:

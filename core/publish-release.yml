@@ -44,20 +44,24 @@ gate:release:
       when: on_success
     - !reference [.release_rules, rules]
 
-.publish:release:
-  variables:
-    PUBLISH_TYPE: 'candidate'
+.publish:candidate:needs:
   needs:
     - job: 'set:version'
     - job: 'build:candidate'
       optional: true
     - job: 'gate:release'
 
-publish:release:
+.publish:candidate:
+  variables:
+    PUBLISH_TYPE: 'candidate'
+  needs:
+    - !reference [.publish:candidate:needs, needs]
+
+publish:candidate:
   extends:
     - .publish_base
     - .publish
-    - .publish:release
+    - .publish:candidate
     - .publish:override
   stage: release
   rules:
@@ -74,7 +78,7 @@ publish:release:
       optional: true
     - job: 'test:candidate'
       optional: true
-    - job: 'publish:release'
+    - job: 'publish:candidate'
       optional: true
 
 gitlab:release:

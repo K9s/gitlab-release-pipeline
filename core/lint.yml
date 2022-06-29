@@ -12,9 +12,15 @@
     
     cat ${CI_PROJECT_DIR}/rp.env
 
+.link:check:needs:
+  needs:
+    - job: 'set:version'
+
 .link:check:
   variables:
     _: ''
+  needs:
+    - !reference [.link:check:needs, needs]
 
 lint:check:
   extends:
@@ -22,8 +28,6 @@ lint:check:
     - .lint
     - .link:check
   stage: prebuild
-  needs:
-    - job: 'set:version'
   rules:
     - if: $RP_LINT_DISABLED == 'true'
       when: never

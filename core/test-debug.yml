@@ -1,10 +1,14 @@
-.test:debug:
-  variables:
-    TEST_TYPE: 'debug'
+.test:debug:needs:
   needs:
     - job: 'set:version'
     - job: 'build:debug'
       optional: true
+
+.test:debug:
+  variables:
+    TEST_TYPE: 'debug'
+  needs:
+    - !reference [.test:debug:needs, needs]
 
 test:debug:
   extends:

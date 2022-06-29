@@ -8,6 +8,11 @@ gate:preprod:
     - !reference [.release_rules, rules]
   when: on_success
 
+.deploy:preprod:needs:
+  needs:
+    - job: 'set:version'
+    - job: 'gate:preprod'
+
 .deploy:preprod:
   environment:
     deployment_tier: testing
@@ -15,8 +20,7 @@ gate:preprod:
     on_stop: deploy:preprod:stop
     auto_stop_in: 1 week
   needs:
-    - job: 'set:version'
-    - job: 'gate:preprod'
+    - !reference [.deploy:preprod:needs, needs]
 
 deploy:preprod:
   extends:

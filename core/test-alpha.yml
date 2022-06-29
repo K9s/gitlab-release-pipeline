@@ -1,10 +1,14 @@
-.test:alpha:
-  variables:
-    TEST_TYPE: 'alpha'
+.test:alpha:needs:
   needs:
     - job: 'set:version'
     - job: 'build:alpha'
       optional: true
+
+.test:alpha:
+  variables:
+    TEST_TYPE: 'alpha'
+  needs:
+    - !reference [.test:alpha:needs, needs]
 
 test:alpha:
   extends:

@@ -47,6 +47,6 @@ set:stable:tag:
   resource_group: $APP-release
   needs:
     - job: 'gitlab:release'
-    - job: 'publish:release'
+    - job: 'publish:candidate'
       optional: true
     - job: 'set:version'

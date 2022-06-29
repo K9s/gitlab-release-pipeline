@@ -1,13 +1,17 @@
+.build:candidate:needs:
+  needs:
+    - job: 'set:version'
+    - job: 'build:debug'
+      artifacts: false
+      optional: true
+
 .build:candidate:
   variables:
     _PRE_RELEASE: ''
     PRE_RELEASE: ''
     SEMVER: $RELEASE_SEMVER
   needs:
-    - job: 'set:version'
-    - job: 'build:debug'
-      artifacts: false
-      optional: true
+    - !reference [.build:candidate:needs, needs]
 
 build:candidate:
   extends:

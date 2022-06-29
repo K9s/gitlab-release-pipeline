@@ -13,6 +13,10 @@ if [[ -z "${APP}" ]]; then
   export APP=$app
 fi
 
+if [[ -z "${SEMVER}" ]]; then
+    echo
+fi
+
 # Work around the limitation where gitlab runners can't push to repos.
 if [[ -z "${RELEASE_USER}" ]]; then
   echo "Using default checkout credentials"

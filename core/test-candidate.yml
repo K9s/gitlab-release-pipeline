@@ -1,10 +1,14 @@
-.test:candidate:
-  variables:
-    TEST_TYPE: 'candidate'
+.test:candidate:needs:
   needs:
     - job: 'set:version'
     - job: 'build:candidate'
       optional: true
+
+.test:candidate:
+  variables:
+    TEST_TYPE: 'candidate'
+  needs:
+    - !reference [.test:candidate:needs, needs]
 
 test:candidate:
   extends:

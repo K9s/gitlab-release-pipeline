@@ -1,12 +1,16 @@
+.build:debug:needs:
+  needs:
+    - job: 'set:version'
+    - job: 'lint:check'
+      optional: true
+
 .build:debug:
   variables:
     _PRE_RELEASE: b$BUILD_NUMBER
     PRE_RELEASE: b$BUILD_NUMBER
     SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
   needs:
-    - job: 'set:version'
-    - job: 'lint:check'
-      optional: true
+    - !reference [.build:debug:needs, needs]
 
 build:debug:
   extends:
