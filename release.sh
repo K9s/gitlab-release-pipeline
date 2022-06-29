@@ -37,7 +37,7 @@ _APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
 VERSION_CODE=$((${_APP}_VERSION_CODE+1))
 BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
 RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
-export BUILD=$((${RP_SEMVER_BUILD_REF}))
+export BUILD=$(eval echo \${"$RP_SEMVER_BUILD_REF"})
 export BUILD=$("$project_dir"/semver.py get-build)
 
 if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
@@ -79,5 +79,5 @@ echo "-----------------------------------------------"
 
 if [[ $release_type == 'release' && $BUILD -eq 0 ]]; then
   echo "Build: ${BUILD} is not valid for releases"
-  exit -1
+  exit 1
 fi

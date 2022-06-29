@@ -2,7 +2,7 @@ include:
   - local: core/.helpers.yml
 
 stages:
-  - semver
+  - precondition
   - prebuild
   - build
   - postbuild
