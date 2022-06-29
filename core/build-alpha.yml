@@ -4,7 +4,7 @@
     PRE_RELEASE: a$BUILD_NUMBER
     SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'build:debug'
       artifacts: false
       optional: true

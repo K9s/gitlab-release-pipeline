@@ -2,7 +2,7 @@
   variables:
     TEST_TYPE: 'candidate'
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'build:candidate'
       optional: true
 

@@ -23,7 +23,7 @@ lint:check:
     - .link:check
   stage: prebuild
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
   rules:
     - if: $RP_LINT_DISABLED == 'true'
       when: never

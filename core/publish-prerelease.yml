@@ -12,7 +12,7 @@ gate:prerelease:
   variables:
     PUBLISH_TYPE: 'alpha'
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'build:alpha'
       optional: true
     - job: 'gate:prerelease'
@@ -33,7 +33,7 @@ publish:alpha:
   variables:
     PUBLISH_TYPE: 'debug'
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'build:debug'
       optional: true
     - job: 'gate:prerelease'

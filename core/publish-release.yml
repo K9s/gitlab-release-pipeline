@@ -48,7 +48,7 @@ gate:release:
   variables:
     PUBLISH_TYPE: 'candidate'
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'build:candidate'
       optional: true
     - job: 'gate:release'
@@ -68,7 +68,7 @@ publish:release:
 .gitlab:release:
   stage: release
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'gate:release'
     - job: 'build:candidate'
       optional: true

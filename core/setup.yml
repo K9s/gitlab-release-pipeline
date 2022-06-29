@@ -49,4 +49,4 @@ set:stable:tag:
     - job: 'gitlab:release'
     - job: 'publish:release'
       optional: true
-    - job: 'get:version'
+    - job: 'set:version'

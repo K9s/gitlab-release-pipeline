@@ -27,7 +27,7 @@
     reports:
       dotenv: $DIR/$CI_JOB_NAME.env
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
   resource_group: $APP-release
 
 bump:patch:
@@ -54,7 +54,7 @@ bump:major:
       when: never
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
-get:version:
+set:version:
   extends: .rp_base
   stage: semver
   script:

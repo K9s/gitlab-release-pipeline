@@ -31,7 +31,7 @@ code_quality:
       apk add bash
       ${CI_PROJECT_DIR}/codequality-cache.sh
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
 
 # The following /should work/ but cannot see https://gitlab.com/gitlab-org/ci-cd/codequality/-/merge_requests/37
 

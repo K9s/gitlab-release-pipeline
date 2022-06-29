@@ -41,11 +41,11 @@ more details.
 Ideally semver should be handled automatically or at least in an automated manner. This is especially true for
 PATCH versions where the act of 'releasing' a particular version should automatically result in a 'bump' of version.
 
-RP handles Semver via [semver.py](TODO) which is used by the [`get:version`](TODO) job to determine
+RP handles Semver via [semver.py](TODO) which is used by the [`set:version`](TODO) job to determine
 current version, version to release (the bump) and does various checks to ensure the version to be built/released
 is valid.
 
-All versioning is handled via git tags and the results of `get:version` are available to any job via environment
+All versioning is handled via git tags and the results of `set:version` are available to any job via environment
 variables via needs (see [Environment Variables](TODO) and [DAG](TODO) sections below for more details)
 
 The RP also includes jobs to automate [major](TODO), [minor](TODO) and [patch](TODO) semver bumps as well as
@@ -101,7 +101,7 @@ predefined variables that gitlab provides. Environment variables can come from o
 
 - CI/CD variables including from Gitlab instance, Gitlab group and Gitlab project
 - Pipeline variables
-- Needs/dependencies from other jobs... for example `get:version` provides a standard set of variables that allow
+- Needs/dependencies from other jobs... for example `set:version` provides a standard set of variables that allow
   jobs to know what the version and other important context
 - The execution context of the runner ie k8s pod, machine with runner deployed etc...
 
@@ -251,7 +251,7 @@ purposes.
 
 RP Stages are defined in [stages.yml](core/stages.yml) 
 
-  - semver: Handle any semver jobs such as `get:version` and version bumping `bump:*`
+  - semver: Handle any semver jobs such as `set:version` and version bumping `bump:*`
   - prebuild: Do any prebuild jobs like `lint:check`
   - build: Do build jobs such as `build:*`
   - postbuild: Unused by default, available for [Arbitrary Jobs](TODO)
@@ -282,7 +282,7 @@ TODO
 
 TODO
 
-#### `get:version`
+#### `set:version`
 
 TODO
 
@@ -588,11 +588,11 @@ known as version bumping.  The implementation of this handing closely adheres to
 ##### values: build, patch, minor, major
 
 Common to all:
- - `get:version` job will determine if the proposed next_version is a valid target (call can_bump_to() see 
+ - `set:version` job will determine if the proposed next_version is a valid target (call can_bump_to() see 
    [semver.py](TODO)) which will ensure the version can be bumped to without violating semver rules or conflict 
    with existing releases (tags)
- - `get:version` will expose `VERSION`, `BUILD_NUMBER` and other envvars for use by build/test/publish jobs later in 
-   the pipeline. See [`get:version` job](TODO) for more details. 
+ - `set:version` will expose `VERSION`, `BUILD_NUMBER` and other envvars for use by build/test/publish jobs later in 
+   the pipeline. See [`set:version` job](TODO) for more details. 
  - All versions consider/include `BUILD_NUMBER` as a build identifier
 
 When set to anything other than `build`

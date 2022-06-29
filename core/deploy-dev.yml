@@ -15,7 +15,7 @@ gate:dev:
     on_stop: deploy:dev:stop
     auto_stop_in: 1 hour
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'gate:dev'
 
 deploy:dev:
@@ -48,6 +48,6 @@ deploy:dev:stop:
       when: never
     - !reference [.non-release_rules, rules]
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'deploy:dev'
   when: manual

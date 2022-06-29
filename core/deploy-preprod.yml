@@ -15,7 +15,7 @@ gate:preprod:
     on_stop: deploy:preprod:stop
     auto_stop_in: 1 week
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'gate:preprod'
 
 deploy:preprod:
@@ -48,6 +48,6 @@ deploy:preprod:stop:
       when: never
     - !reference [.release_rules, rules]
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'deploy:preprod'
   when: manual

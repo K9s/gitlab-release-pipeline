@@ -2,7 +2,7 @@
   variables:
     TEST_TYPE: 'alpha'
   needs:
-    - job: 'get:version'
+    - job: 'set:version'
     - job: 'build:alpha'
       optional: true
 
