@@ -13,7 +13,7 @@ if [[ -z "${APP}" ]]; then
   export APP=$app
 fi
 
-if [[ -z "${SEMVER}" ]]; then
+if [[ -n "${SEMVER}" ]]; then
     echo "⚠️ SEMVER set !!! This will result in SemVer checks being skipped! ⚠️ "
 fi
 
