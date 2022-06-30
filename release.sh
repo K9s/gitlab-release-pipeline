@@ -14,7 +14,7 @@ if [[ -z "${APP}" ]]; then
 fi
 
 if [[ -z "${SEMVER}" ]]; then
-    echo "Warning SEMVER set !!! This will result in SemVer checks being skipped!"
+    echo "⚠️ SEMVER set !!! This will result in SemVer checks being skipped! ⚠️ "
 fi
 
 # Work around the limitation where gitlab runners can't push to repos.
@@ -78,6 +78,6 @@ echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
 echo "-----------------------------------------------"
 
 if [[ $release_type == 'release' && $BUILD -eq 0 ]]; then
-  echo "Build: ${BUILD} is not valid for releases"
+  echo "⛔ Build: ${BUILD} is not valid for releases ⛔ "
   exit 1
 fi

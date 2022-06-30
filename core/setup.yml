@@ -56,7 +56,9 @@ gate:precondition:check:
     done
     
     if [[ $fail_job != 0 ]]; then
-      echo "One or more ⭐ required⭐  ENVARs are unset, failing job"
+      echo "⛔ One or more ⭐ required⭐  ENVARs are unset, failing job ⛔ "
+    else
+      echo "✅ Everything looks go to 🚀 "
     fi
     exit $fail_job
 
@@ -72,7 +74,6 @@ set:stable:tag:
     export RP_BUMP=build
     export RP_IGNORE_ALREADY_TAGGED=True
     export RP_SEMVER_BUILD_REF=BUILD
-    unset SEMVER
     ${CI_PROJECT_DIR}/release.sh check
     git tag -f ${APP}-stable
     git tag -f ${APP}-${VERSION_MAJOR}-stable

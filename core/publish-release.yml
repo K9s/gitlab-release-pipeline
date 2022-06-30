@@ -11,9 +11,8 @@ gate:release:
       [[ -z "${VERSION_BUMPED}" ]] && { echo "!!! Version not bumped, continuing with release !!!"; } || { echo "Version bumped to ${VERSION_BUMPED}, not doing release" && exit 1; }
       echo "Expected to release ${VERSION}...checking for issues..."
       export RP_SEMVER_BUILD_REF=BUILD
-      unset SEMVER
       ${CI_PROJECT_DIR}/release.sh release
-      echo "Release is a GO!"
+      echo "🚀  Release is a GO 🚀 "
     - |
       #### Bump Version Code ####
       set -e
@@ -43,6 +42,7 @@ gate:release:
     - if: $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true' && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: on_success
     - !reference [.release_rules, rules]
+  dependencies: !reference [.gate_base, dependencies]
 
 .publish:candidate:needs:
   needs:

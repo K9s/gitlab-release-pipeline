@@ -6,3 +6,5 @@
   allow_failure: false
   when: manual
   interruptible: true
+  dependencies:
+    - set:version
