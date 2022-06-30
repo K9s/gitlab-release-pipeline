@@ -12,28 +12,33 @@ gate:release:
       echo "Expected to release ${VERSION}...checking for issues..."
       export RP_SEMVER_BUILD_REF=BUILD
       ${CI_PROJECT_DIR}/release.sh release
-      echo "🚀  Release is a GO 🚀 "
+      echo "🚀 Release is a GO 🚀 "
     - |
       #### Bump Version Code ####
       set -e
       
-      export __APP=`echo ${APP} | tr '-' '_'`
-      _APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
-      
-      VERSION_CODE_CURRENT=$((${_APP}_VERSION_CODE))
-      if [[ ${VERSION_CODE_CURRENT} -eq 0 ]]; then
-        RESULT=$(curl -sS --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables" --form "key=${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
-      else
-        if ! [[ ${VERSION_CODE} -eq ${VERSION_CODE_CURRENT}+1 ]]; then
-          echo "Woops, looks like VERSION_CODE: ${VERSION_CODE} for ${APP} was release already!  Please re-run pipeline."
-          exit 1
+      if [[ -n $VERSION_CODE ]]; then
+        export __APP=`echo ${APP} | tr '-' '_'`
+        _APP=$(python -c "import os;print(os.environ.get('__APP').upper())")
+        
+        VERSION_CODE_CURRENT=$((${_APP}_VERSION_CODE))
+        if [[ ${VERSION_CODE_CURRENT} -eq 0 ]]; then
+          RESULT=$(curl -sS --request POST --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables" --form "key=${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
+        else
+          if ! [[ ${VERSION_CODE} -eq ${VERSION_CODE_CURRENT}+1 ]]; then
+            echo "Woops, looks like VERSION_CODE: ${VERSION_CODE} for ${APP} was release already!  Please re-run pipeline."
+            exit 1
+          fi
+          RESULT=$(curl -sS --request PUT --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
         fi
-        RESULT=$(curl -sS --request PUT --header "PRIVATE-TOKEN: ${RELEASE_PASS}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/${_APP}_VERSION_CODE" --form "value=${VERSION_CODE}")
+        
+        echo "Bumping ${_APP}_VERSION_CODE from ${VERSION_CODE_CURRENT} to ${VERSION_CODE}"
+      else
+        echo "VERSION_CODE not set, not doing VERSION_CODE bump"
       fi
-      
-      echo "Bumping ${_APP}_VERSION_CODE from ${VERSION_CODE_CURRENT} to ${VERSION_CODE}"
+
   when: manual
   allow_failure: false
   interruptible: true
