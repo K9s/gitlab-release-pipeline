@@ -24,8 +24,9 @@ gate:precondition:check:
   stage: prebuild
   extends:
     - .rp_base
-  script: | 
-    #!/usr/bin/env bash
+  before_script: !reference [.set:version, before_script]
+  script: |
+    #### Checking ENVARs ####
     set -e
     
     fail_job=0
@@ -61,6 +62,13 @@ gate:precondition:check:
       echo "✅ Everything looks go to 🚀 "
     fi
     exit $fail_job
+  artifacts:
+    paths:
+      - .config/*
+      - semver.py
+      - release.sh
+      - codequality-cache.sh
+      - config.sh
 
 set:stable:tag:
   extends:
@@ -94,5 +102,6 @@ set:stable:tag:
     - job: 'set:version'
 
 set:version:
+  stage: precondition
   extends:
    - .set:version

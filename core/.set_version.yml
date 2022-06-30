@@ -1,7 +1,7 @@
 .set:version:
   extends: .rp_base
   stage: precondition
-  script:
+  before_script:
     - |
       #### Pulling Artifacts ####
       set -e
@@ -56,6 +56,7 @@
       echo 'echo "FULL_DIR: $(realpath ${DIR})"' >> config.sh
       echo "chmod 600 ~/.pypirc" >> config.sh
       chmod +x config.sh
+  script:
     - |
       #### Checking SemVer ####
       set -e
@@ -66,9 +67,3 @@
   artifacts:
     reports:
       dotenv: $DIR/release.env
-    paths:
-      - .config/*
-      - semver.py
-      - release.sh
-      - codequality-cache.sh
-      - config.sh
