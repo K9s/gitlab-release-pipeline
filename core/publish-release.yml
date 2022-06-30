@@ -52,6 +52,7 @@ gate:release:
 .publish:candidate:needs:
   needs:
     - job: 'set:version'
+    - job: 'gate:precondition:check'
     - job: 'build:candidate'
       optional: true
     - job: 'gate:release'
@@ -77,6 +78,7 @@ publish:candidate:
 .gitlab:release:needs:
   needs:
     - job: 'set:version'
+    - job: 'gate:precondition:check'
     - job: 'gate:release'
     - job: 'build:candidate'
       optional: true

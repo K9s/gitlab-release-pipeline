@@ -1,6 +1,7 @@
 .test:debug:needs:
   needs:
     - job: 'set:version'
+    - job: 'gate:precondition:check'
     - job: 'build:debug'
       optional: true
 

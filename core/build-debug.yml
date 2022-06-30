@@ -1,6 +1,7 @@
 .build:debug:needs:
   needs:
     - job: 'set:version'
+    - job: 'gate:precondition:check'
     - job: 'lint:check'
       optional: true
 
