@@ -8,4 +8,4 @@
   interruptible: true
   dependencies:
     - set:version
-    - gate:precondition:check
+    - gate:preconditions

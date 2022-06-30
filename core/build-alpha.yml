@@ -1,7 +1,7 @@
 .build:alpha:needs:
   needs:
     - job: 'set:version'
-    - job: 'gate:precondition:check'
+    - job: 'gate:preconditions'
     - job: 'build:debug'
       artifacts: false
       optional: true

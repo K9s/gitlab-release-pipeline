@@ -20,7 +20,7 @@ pull:setup:artifacts:
       - semver.py
       - release.sh
 
-gate:precondition:check:
+gate:preconditions:
   stage: prebuild
   extends:
     - .rp_base
@@ -100,7 +100,7 @@ set:stable:tag:
     - job: 'publish:candidate'
       optional: true
     - job: 'set:version'
-    - job: 'gate:precondition:check'
+    - job: 'gate:preconditions'
 
 set:version:
   stage: precondition

@@ -11,7 +11,7 @@ gate:prerelease:
 .publish:alpha:needs:
   needs:
     - job: 'set:version'
-    - job: 'gate:precondition:check'
+    - job: 'gate:preconditions'
     - job: 'build:alpha'
       optional: true
     - job: 'gate:prerelease'
@@ -37,7 +37,7 @@ publish:alpha:
 .publish:debug:needs:
   needs:
     - job: 'set:version'
-    - job: 'gate:precondition:check'
+    - job: 'gate:preconditions'
     - job: 'build:debug'
       optional: true
     - job: 'gate:prerelease'
