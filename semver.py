@@ -252,12 +252,8 @@ if __name__ == "__main__":
 
     if SEMVER:
         __version = _parse_version(semver, version=SEMVER)
-        semver.build = __version.local if __version.local else 1
+        semver.build = __version.local if __version.local else os.getenv("BUILD", 1)
         __current_version = semver.get_current_version()
-        if os.getenv("BUILD"):
-            raise EnvironmentError(
-                'Setting BUILD envar is not valid when SEMVER is set'
-            )
     else:
         VERSION = os.getenv('VERSION')
 
