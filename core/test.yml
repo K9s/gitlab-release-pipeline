@@ -17,5 +17,9 @@ include:
     
     cat ${CI_PROJECT_DIR}/rp.env
 
+.test:
+  script:
+    - 'echo "no test config defined Add .test to pipeline to define."'
+
 .test:override:
   stage: test

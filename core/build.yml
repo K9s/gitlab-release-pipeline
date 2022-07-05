@@ -18,5 +18,10 @@ include:
     
     cat ${CI_PROJECT_DIR}/rp.env
 
+
+.build:
+  script:
+    - 'echo "no build config defined Add .build to pipeline to define."'
+
 .build:override:
   stage: build

@@ -4,3 +4,7 @@ integration:trigger:
   stage: integration
   rules:
     - if: $RP_INTEGRATION_TRIGGER_ENABLED == 'true'
+
+.integration:
+  script:
+    - 'echo "no integration config defined Add .integration to pipeline to define."'

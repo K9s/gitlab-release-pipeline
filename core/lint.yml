@@ -12,6 +12,10 @@
     
     cat ${CI_PROJECT_DIR}/rp.env
 
+.lint:
+  script:
+    - 'echo "no lint config defined Add .lint to pipeline to define."'
+
 .link:check:needs:
   needs:
     - job: 'set:version'

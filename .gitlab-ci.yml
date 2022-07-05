@@ -28,7 +28,7 @@ default:
     - .rp_base
 
 variables:
-  APP: release-scripts
+  APP: release-pipeline
   DIR: .
   RP_TEMPLATE_PROJECT_ID: $CI_PROJECT_ID
   RP_ENABLE_CONTINUOUS_DEPLOYMENT: 'true'
@@ -131,4 +131,4 @@ set:stable:tag:
     git push --delete origin stable || true
     git push -f origin stable
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - !reference [.release_rules, rules]

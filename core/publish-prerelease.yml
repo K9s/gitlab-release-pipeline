@@ -1,3 +1,6 @@
+include:
+  - local: core/.gate_base.yml
+
 gate:prerelease:
   extends:
     - .gate_base

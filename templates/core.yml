@@ -23,34 +23,6 @@ default:
     - runner_system_failure
     - stuck_or_timeout_failure
 
-.lint:
-  script:
-    - 'echo "no lint config defined Add .lint to pipeline to define."'
-
-.build:
-  script:
-    - 'echo "no build config defined Add .build to pipeline to define."'
-
-.test:
-  script:
-    - 'echo "no test config defined Add .test to pipeline to define."'
-
-.integration:
-  script:
-    - 'echo "no integration config defined Add .integration to pipeline to define."'
-
-.publish:
-  script:
-    - 'echo "no publish config defined Add .publish to pipeline to define."'
-
-.deploy:
-  script:
-    - 'echo "no deploy config defined Add .deploy to pipeline to define."'
-
-.deploy_stop:
-  script:
-    - 'echo "no deploy stop config defined Add .deploy_stop to pipeline to define."'
-
 variables:
   RP_TEMPLATE_NAME: 'core'
 

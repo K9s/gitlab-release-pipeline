@@ -15,6 +15,10 @@ include:
 
     cat ${CI_PROJECT_DIR}/rp.env
 
+.publish:
+  script:
+    - 'echo "no publish config defined Add .publish to pipeline to define."'
+
 .publish:override:
   variables:
     _: ''

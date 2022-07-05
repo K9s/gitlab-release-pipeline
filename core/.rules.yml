@@ -1,8 +1,9 @@
 .release_rules:
   rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
-    - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_REF_NAME
       when: never
 
@@ -13,5 +14,7 @@
     - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
       when: never
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
       when: never
     - if: $CI_COMMIT_REF_NAME

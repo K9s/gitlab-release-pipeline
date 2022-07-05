@@ -13,7 +13,7 @@ pull:setup:artifacts:
     pipeline: $RP_PARENT_PIPELINE_ID
     job: publish:scripts
   rules:
-    - if: $RP_PARENT_PIPELINE_ID
+    - if: $RP_PARENT_PIPELINE_ID && $RP_PARENT_PIPELINE_ID != 'pull'
   artifacts:
     paths:
       - .config/*

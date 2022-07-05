@@ -18,6 +18,14 @@ include:
   variables:
     GIT_STRATEGY: none
 
+.deploy:
+  script:
+    - 'echo "no deploy config defined Add .deploy to pipeline to define."'
+
 .deploy:override:
   variables:
     _: ''
+
+.deploy_stop:
+  script:
+    - 'echo "no deploy stop config defined Add .deploy_stop to pipeline to define."'
