@@ -1,9 +1,13 @@
 .release_rules:
   rules:
     - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
+      when: on_success
     - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
+      when: on_success
     - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
+      when: on_success
     - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      when: on_success
     - if: $CI_COMMIT_REF_NAME
       when: never
 

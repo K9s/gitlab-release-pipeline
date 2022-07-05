@@ -5,7 +5,7 @@ release_type=${1}
 
 if [[ -z "${APP}" ]]; then
   # shellcheck disable=SC2016
-  echo '${APP} is unset deriving from folder name'
+  echo '$APP is unset deriving from folder name'
   app=$(basename $(realpath .))
   if [[ $app == 'src' ]]; then
     app=$(basename $(realpath ../))
