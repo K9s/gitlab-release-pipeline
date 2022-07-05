@@ -17,6 +17,10 @@ if [[ -n "${SEMVER}" ]]; then
     echo "⚠️ SEMVER set !!! This will result in SemVer checks being skipped! ⚠️ "
 fi
 
+if [[ -n "${RP_RELEASE_BRANCH}" ]]; then
+    echo "⚠️ RP_RELEASE_BRANCH set to ${RP_RELEASE_BRANCH} !!! This overrides default assumptions around what which branch(s) can result in a release ⚠️ "
+fi
+
 # Work around the limitation where gitlab runners can't push to repos.
 if [[ -z "${RELEASE_USER}" ]]; then
   echo "Using default checkout credentials"
