@@ -35,21 +35,24 @@ bump:patch:
   rules:
     - if: $RP_SEMVER_BUMP_JOBS_DISABLED
       when: never
-    - if: $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
-    - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 bump:minor:
   extends: .bump_base
   rules:
     - if: $RP_SEMVER_BUMP_JOBS_DISABLED
       when: never
-    - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 bump:major:
   extends: .bump_base
   rules:
     - if: $RP_SEMVER_BUMP_JOBS_DISABLED
       when: never
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
