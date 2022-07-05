@@ -20,7 +20,7 @@ gate:prod:
 .deploy:prod:
   environment:
     deployment_tier: production
-    name: prod-$APP
+    name: prod
     on_stop: deploy:prod:stop
   needs:
     - !reference [.deploy:prod:needs, needs]
@@ -43,7 +43,7 @@ deploy:prod:
 .deploy:prod:stop:
   environment:
     deployment_tier: production
-    name: prod-$APP
+    name: prod
     action: stop
 
 deploy:prod:stop:
