@@ -16,7 +16,7 @@ gate:dev:
 .deploy:dev:
   environment:
     deployment_tier: development
-    name: dev
+    name: dev-$APP
     on_stop: deploy:dev:stop
     auto_stop_in: 1 hour
   needs:
@@ -38,7 +38,7 @@ deploy:dev:
 .deploy:dev:stop:
   environment:
     deployment_tier: development
-    name: dev
+    name: dev-$APP
     action: stop
 
 deploy:dev:stop:

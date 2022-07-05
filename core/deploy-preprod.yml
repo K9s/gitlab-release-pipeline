@@ -16,7 +16,7 @@ gate:preprod:
 .deploy:preprod:
   environment:
     deployment_tier: testing
-    name: preprod
+    name: preprod-$APP
     on_stop: deploy:preprod:stop
     auto_stop_in: 1 week
   needs:
@@ -38,7 +38,7 @@ deploy:preprod:
 .deploy:preprod:stop:
   environment:
     deployment_tier: testing
-    name: preprod
+    name: preprod-$APP
     action: stop
 
 deploy:preprod:stop:
