@@ -32,7 +32,7 @@ gate:preconditions:
     fail_job=0
     
     echo "⭐  Checking for required environment variables  ⭐ "
-    required_envars=( TAG DESCRIPTION APP VERSION BUILD RELEASE_SEMVER )
+    required_envars=( TAG DESCRIPTION APP VERSION BUILD RELEASE_SEMVER ALPHA_SEMVER DEBUG_SEMVER )
     for var in "${required_envars[@]}"
     do
       value=$(eval echo \${"$var"})

@@ -9,8 +9,8 @@
 .build:alpha:
   variables:
     PRE_RELEASE: a$BUILD_NUMBER
-    _SEMVER: ${VERSION}-${PRE_RELEASE}+${BUILD}
-    SEMVER: ${VERSION}-${PRE_RELEASE}+${BUILD}
+    _SEMVER: $ALPHA_SEMVER
+    SEMVER: $ALPHA_SEMVER
   needs:
     - !reference [.build:alpha:needs, needs]
 

@@ -68,6 +68,8 @@ if [[ $release_type == 'prep' ]]; then
   echo "RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF}" >> release.env
   echo "BUILD=${BUILD}" >> release.env
   echo "RELEASE_SEMVER=${RELEASE_SEMVER}" >> release.env
+  echo "DEBUG_SEMVER=${VERSION}-b${BUILD_NUMBER}+${BUILD}" >> release.env
+  echo "ALPHA_SEMVER=${VERSION}-a${BUILD_NUMBER}+${BUILD}" >> release.env
   echo "----------------release.env--------------------"
   cat release.env
   echo "-----------------------------------------------"
