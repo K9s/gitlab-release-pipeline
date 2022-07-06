@@ -56,7 +56,7 @@ CURRENT_VERSION=$("$project_dir"/semver.py get-current)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
 if [[ $release_type == 'prep' ]]; then
   echo "TAG=${TAG_PREFIX}${RELEASE_SEMVER}" > release.env
-  echo "DESCRIPTION='Release version ${VERSION} of ${APP}'" >> release.env
+  echo "DESCRIPTION='Release version ${RELEASE_SEMVER} of ${APP}'" >> release.env
   echo "APP=${APP}" >> release.env
   echo "VERSION=${VERSION}" >> release.env
   echo "VERSION_CODE=${VERSION_CODE}" >> release.env
