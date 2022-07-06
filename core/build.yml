@@ -14,13 +14,13 @@ include:
     
     if [[ "${_SEMVER}" !=  "${SEMVER}" ]]; then
         echo "⚠️ SEMVER was overridden! derived SEMVER: ${_SEMVER} passed SEMVER: ${SEMVER} ⚠️ "
-        echo "⚠️ Setting _SEMVER to derived SEMVER.  SEMVER will remain as passed. ⚠️ "
-        echo "_SEMVER=${_SEMVER}" >> ${CI_PROJECT_DIR}/rp.env
+        echo "⚠️ _SEMVER will be set to the derived SEMVER.  SEMVER will remain as passed. ⚠️ "
     fi
     
     echo "BUILD_JOB=${CI_JOB_NAME}" >> ${CI_PROJECT_DIR}/rp.env
     echo "PRE_RELEASE=${PRE_RELEASE}" >> ${CI_PROJECT_DIR}/rp.env
     echo "SEMVER=${SEMVER}" >> ${CI_PROJECT_DIR}/rp.env
+    echo "_SEMVER=${_SEMVER}" >> ${CI_PROJECT_DIR}/rp.env
     
     cat ${CI_PROJECT_DIR}/rp.env
 
