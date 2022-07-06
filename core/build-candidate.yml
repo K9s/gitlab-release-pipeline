@@ -8,8 +8,8 @@
 
 .build:candidate:
   variables:
-    _PRE_RELEASE: ''
     PRE_RELEASE: ''
+    _SEMVER: $RELEASE_SEMVER
     SEMVER: $RELEASE_SEMVER
   needs:
     - !reference [.build:candidate:needs, needs]

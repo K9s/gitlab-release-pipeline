@@ -7,8 +7,8 @@
 
 .build:debug:
   variables:
-    _PRE_RELEASE: b$BUILD_NUMBER
     PRE_RELEASE: b$BUILD_NUMBER
+    _SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
     SEMVER: ${VERSION}-${_PRE_RELEASE}+${BUILD}
   needs:
     - !reference [.build:debug:needs, needs]
