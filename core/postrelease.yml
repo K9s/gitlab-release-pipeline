@@ -1,0 +1,27 @@
+set:stable:tag:
+  extends:
+    - .rp_base
+  stage: postrelease
+  cache: []
+  script: |
+    #### Setting stable tag ####
+    set -e
+    cd ${DIR}
+    export RP_BUMP=build
+    export RP_IGNORE_ALREADY_TAGGED=True
+    export RP_SEMVER_BUILD_REF=BUILD
+    ${CI_PROJECT_DIR}/release.sh check
+    git tag -f ${APP}-stable
+    git tag -f ${APP}-${VERSION_MAJOR}-stable
+    git tag -f ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable
+    git push --delete origin ${APP}-stable || true
+    git push --delete origin ${APP}-${VERSION_MAJOR}-stable || true
+    git push --delete origin ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable || true
+    git push -f origin ${APP}-stable
+    git push -f origin ${APP}-${VERSION_MAJOR}-stable
+    git push -f origin ${APP}-${VERSION_MAJOR}.${VERSION_MINOR}-stable
+  rules:
+    - if: $RP_SET_STABLE_TAGS_DISABLED == 'true'
+      when: never
+    - !reference [.release_rules, rules]
+  resource_group: $APP-release

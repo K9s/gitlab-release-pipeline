@@ -1,0 +1,29 @@
+.publish:candidate:needs:
+  needs:
+    - job: 'set:version'
+      optional: false
+    - job: 'gate:preconditions'
+      optional: false
+    - job: 'build:candidate'
+      optional: true
+    - job: 'gate:release'
+
+.publish:candidate:
+  variables:
+    PUBLISH_TYPE: 'candidate'
+  needs:
+    - !reference [.publish:candidate:needs, needs]
+
+publish:candidate:
+  extends:
+    - .publish_base
+    - .publish
+    - .publish:candidate
+    - .publish:override
+  stage: release
+  rules:
+    - if: $RP_PUBLISH_DISABLED == 'true'
+      when: never
+    - if: $RP_CANDIDATE_PUBLISH_DISABLED == 'true'
+      when: never
+    - !reference [build:candidate, rules]

@@ -1,3 +1,6 @@
+include:
+  - local: 'core/precondition-semver.yml'
+
 .set:version:
   extends: .rp_base
   stage: precondition
@@ -67,3 +70,64 @@
   artifacts:
     reports:
       dotenv: $DIR/release.env
+
+set:version:
+  stage: precondition
+  extends:
+   - .set:version
+  rules:
+    - if: $RP_INCLUDE_PRECONDITIONS == 'true'
+    - !reference [.release_rules, rules]
+
+gate:preconditions:
+  stage: prebuild
+  extends:
+    - .rp_base
+  before_script: !reference [.set:version, before_script]
+  script: |
+    #### Checking ENVARs ####
+    set -e
+    
+    fail_job=0
+    
+    echo "⭐  Checking for required environment variables  ⭐ "
+    required_envars=( TAG DESCRIPTION APP VERSION BUILD RELEASE_SEMVER PRERELEASE_SEMVER DEBUG_SEMVER )
+    for var in "${required_envars[@]}"
+    do
+      value=$(eval echo \${"$var"})
+      if [[ -z $value ]]; then
+        echo "   ⛔  ${var}"
+        fail_job=1
+      else
+        echo "   ✅  ${var}=${value}"
+      fi
+    done
+    
+    echo "💫  Checking for recommended environment variables  💫 "
+    recommended_envars=( VERSION_PATCH VERSION_MINOR VERSION_MAJOR VERSION_CODE CURRENT_VERSION )
+    for var in "${recommended_envars[@]}"
+    do
+      value=$(eval echo \${"$var"})
+      if [[ -z $value ]]; then
+        echo "   ⚠️  ${var}"
+      else
+        echo "   ✅  ${var}=${value}"
+      fi
+    done
+    
+    if [[ $fail_job != 0 ]]; then
+      echo "⛔ One or more ⭐ required⭐  ENVARs are unset, failing job ⛔ "
+    else
+      echo "✅ Everything looks go to 🚀 "
+    fi
+    exit $fail_job
+  artifacts:
+    paths:
+      - .config/*
+      - semver.py
+      - release.sh
+      - codequality-cache.sh
+      - config.sh
+  rules:
+    - if: $RP_INCLUDE_PRECONDITIONS == 'true'
+    - !reference [.release_rules, rules]

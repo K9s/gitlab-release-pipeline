@@ -19,6 +19,9 @@
 .link:check:needs:
   needs:
     - job: 'set:version'
+      optional: true
+    - job: 'gate:preconditions'
+      optional: true
 
 .link:check:
   variables:

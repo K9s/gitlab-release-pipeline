@@ -44,6 +44,13 @@ RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
 export BUILD=$(eval echo \${"$RP_SEMVER_BUILD_REF"})
 export BUILD=$("$project_dir"/semver.py get-build)
 
+if [[ -z "${BUILD}" ]]; then
+  echo "BUILD was not able to be determined!"
+  exit 1
+fi
+
+git fetch --tags -f &> /dev/null || true
+
 if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
   echo "Unable to determine version, fetching full history and trying again."
   git fetch --unshallow --quiet || true
@@ -51,7 +58,16 @@ fi
 VERSION=$("$project_dir"/semver.py get)
 
 TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
-RELEASE_SEMVER=$("$project_dir"/semver.py get-semver)
+
+RELEASE_SEMVER="${VERSION}"
+DEBUG_SEMVER="${VERSION}-b${BUILD_NUMBER}"
+PRERELEASE_SEMVER="${VERSION}-a${BUILD_NUMBER}"
+if [[ $RP_SEMVER_INCLUDE_BUILD == 'true' ]]; then
+  RELEASE_SEMVER="${RELEASE_SEMVER}+${BUILD}"
+  DEBUG_SEMVER="${DEBUG_SEMVER}+${BUILD}"
+  PRERELEASE_SEMVER="${PRERELEASE_SEMVER}+${BUILD}"
+fi
+
 CURRENT_VERSION=$("$project_dir"/semver.py get-current)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
 if [[ $release_type == 'prep' ]]; then
@@ -65,11 +81,11 @@ if [[ $release_type == 'prep' ]]; then
   echo "VERSION_MINOR=$("$project_dir"/semver.py get-minor)" >> release.env
   echo "VERSION_MAJOR=$("$project_dir"/semver.py get-major)" >> release.env
   echo "BUILD_NUMBER=${BUILD_NUMBER}" >> release.env
-  echo "RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF}" >> release.env
   echo "BUILD=${BUILD}" >> release.env
   echo "RELEASE_SEMVER=${RELEASE_SEMVER}" >> release.env
-  echo "DEBUG_SEMVER=${VERSION}-b${BUILD_NUMBER}+${BUILD}" >> release.env
-  echo "ALPHA_SEMVER=${VERSION}-a${BUILD_NUMBER}+${BUILD}" >> release.env
+  echo "DEBUG_SEMVER=${DEBUG_SEMVER}" >> release.env
+  echo "PRERELEASE_SEMVER=${PRERELEASE_SEMVER}" >> release.env
+
   echo "----------------release.env--------------------"
   cat release.env
   echo "-----------------------------------------------"
@@ -78,6 +94,10 @@ fi
 echo "--------------Reference Vars-------------------"
 echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
 echo "TAG_PREFIX: ${TAG_PREFIX}"
+echo "RP_SEMVER_BUILD_REF: ${RP_SEMVER_BUILD_REF}"
+echo "RP_BUMP: ${RP_BUMP}"
+echo "RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED: ${RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED}"
+echo "-----------------------------------------------"
 
 CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
 echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"

@@ -10,9 +10,11 @@ stages:
   - test
   - posttest
   - prerelease
-  - preprod
+  - dev
   - accessibility
   - integration
   - release
-  - prod
   - postrelease
+  - preprod
+  - prod
+  - wrapup

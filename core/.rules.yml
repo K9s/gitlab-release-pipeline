@@ -6,15 +6,21 @@
     - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_REF_NAME
       when: never
+  continuous_deployment:
+    - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME && $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true'
+      when: on_success
+    - if: $RP_RELEASE_BRANCH == null && $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true' && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      when: on_success
+    - !reference [.release_rules, rules]
 
 .non-release_rules:
   rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
-      when: never
-    - if: $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
-      when: never
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-      when: never
     - if: $RP_RELEASE_BRANCH == $CI_COMMIT_REF_NAME
+      when: never
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^hotfix\/.*$/
+      when: never
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME =~ /^fix\/.*$/
+      when: never
+    - if: $RP_RELEASE_BRANCH == null && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: never
     - if: $CI_COMMIT_REF_NAME

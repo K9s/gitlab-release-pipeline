@@ -1,7 +1,7 @@
 include:
-  - local: core/test-alpha.yml
   - local: core/test-candidate.yml
   - local: core/test-debug.yml
+  - local: core/test-prerelease.yml
 
 .test_base:
   extends:

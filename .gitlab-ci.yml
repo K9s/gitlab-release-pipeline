@@ -39,12 +39,25 @@ variables:
 .pipeline_integration_base:
   stage: integration
 
+.child-pipeline:
+  rules:
+    - if: $RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED
+      variables:
+        RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED: $RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED
+        VERSION: $VERSION
+        RP_BUMP: $RP_BUMP
+    - if: $VERSION || $RP_BUMP
+      variables:
+        VERSION: $VERSION
+        RP_BUMP: $RP_BUMP
+
 base-image:
   stage: build
   variables:
     APP: base-image
     DIR: .
     VERSION: $VERSION
+    RP_BUMP: $RP_BUMP
   trigger:
     include:
       - local: .gitlab-ci-base-image.yml
@@ -52,6 +65,7 @@ base-image:
   needs:
     - 'publish:scripts'
   rules:
+    - !reference [ .child-pipeline, rules ]
     - if: $CI_COMMIT_BRANCH
       changes:
         - Dockerfile
@@ -64,10 +78,13 @@ core:
     APP: core
     DIR: validation_pipelines/core/src
     VERSION: $VERSION
+    RP_BUMP: $RP_BUMP
   trigger:
     include:
       - local: validation_pipelines/core/.gitlab-ci.yml
     strategy: depend
+  rules:
+    - !reference [.child-pipeline, rules]
 
 docker-python:
   extends:
@@ -76,10 +93,13 @@ docker-python:
     APP: docker-python
     DIR: validation_pipelines/docker-python/src
     VERSION: $VERSION
+    RP_BUMP: $RP_BUMP
   trigger:
     include:
       - local: validation_pipelines/docker-python/.gitlab-ci.yml
     strategy: depend
+  rules:
+    - !reference [.child-pipeline, rules]
 
 package-python:
   extends:
@@ -88,11 +108,13 @@ package-python:
     APP: package-python
     DIR: validation_pipelines/package-python/src
     VERSION: $VERSION
+    RP_BUMP: $RP_BUMP
   trigger:
     include:
      - local: validation_pipelines/package-python/.gitlab-ci.yml
     strategy: depend
   rules:
+    - !reference [.child-pipeline, rules]
     - if: $EXTENDED_PIPELINE_INTEGRATIONS
 
 script-python:
@@ -101,12 +123,13 @@ script-python:
   variables:
     APP: script-python
     DIR: validation_pipelines/script-python/src
-    VERSION: $VERSION
+    RP_BUMP: $RP_BUMP
   trigger:
     include:
       - local: validation_pipelines/script-python/.gitlab-ci.yml
     strategy: depend
   rules:
+    - !reference [.child-pipeline, rules]
     - if: $EXTENDED_PIPELINE_INTEGRATIONS
 
 publish:scripts:

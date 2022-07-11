@@ -1,7 +1,10 @@
+include:
+  - local: core/.gate_base.yml
+
 gate:dev:
   extends:
     - .gate_base
-  stage: preprod
+  stage: dev
   rules:
     - if: $RP_DEPLOYS_DISABLED == 'true'
       when: never
@@ -11,6 +14,9 @@ gate:dev:
 .deploy:dev:needs:
   needs:
     - job: 'set:version'
+      optional: true
+    - job: 'publish:prerelease'
+      optional: true
     - job: 'gate:dev'
 
 .deploy:dev:
@@ -28,11 +34,9 @@ deploy:dev:
     - .deploy
     - .deploy:dev
     - .deploy:override
-  stage: preprod
+  stage: dev
   rules:
-    - if: $RP_DEPLOYS_DISABLED == 'true'
-      when: never
-    - !reference [.non-release_rules, rules]
+    - !reference [gate:dev, rules]
   resource_group: global-dev-deploy
 
 .deploy:dev:stop:
@@ -46,12 +50,11 @@ deploy:dev:stop:
     - .deploy_base
     - .deploy_stop
     - .deploy:dev:stop
-  stage: preprod
+  stage: dev
   rules:
-    - if: $RP_DEPLOYS_DISABLED == 'true'
-      when: never
-    - !reference [.non-release_rules, rules]
+    - !reference [gate:dev, rules]
   needs:
     - job: 'set:version'
+      optional: true
     - job: 'deploy:dev'
   when: manual

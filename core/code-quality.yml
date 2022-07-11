@@ -32,7 +32,9 @@ code_quality:
       ${CI_PROJECT_DIR}/codequality-cache.sh
   needs:
     - job: 'set:version'
+      optional: true
     - job: 'gate:preconditions'
+      optional: true
 
 # The following /should work/ but cannot see https://gitlab.com/gitlab-org/ci-cd/codequality/-/merge_requests/37
 

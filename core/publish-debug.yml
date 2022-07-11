@@ -1,29 +1,29 @@
-.publish:prerelease:needs:
+.publish:debug:needs:
   needs:
     - job: 'set:version'
       optional: true
     - job: 'gate:preconditions'
       optional: true
-    - job: 'build:prerelease'
+    - job: 'build:debug'
       optional: true
     - job: 'gate:prerelease'
 
-.publish:prerelease:
+.publish:debug:
   variables:
-    PUBLISH_TYPE: 'prerelease'
+    PUBLISH_TYPE: 'debug'
   needs:
-    - !reference [.publish:prerelease:needs, needs]
+    - !reference [.publish:debug:needs, needs]
 
-publish:prerelease:
+publish:debug:
   extends:
     - .publish_base
     - .publish
-    - .publish:prerelease
+    - .publish:debug
     - .publish:override
   stage: prerelease
   rules:
     - if: $RP_PUBLISH_DISABLED == 'true'
       when: never
-    - if: $RP_PRERELEASE_PUBLISH_DISABLED == 'true'
+    - if: $RP_DEBUG_PUBLISH_DISABLED == 'true'
       when: never
-    - !reference [build:prerelease, rules]
+    - !reference [build:debug, rules]

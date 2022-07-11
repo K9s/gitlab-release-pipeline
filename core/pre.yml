@@ -1,0 +1,19 @@
+include:
+  - local: core/.rp_base.yml
+  - local: core/.rules.yml
+  - local: core/.base.yml
+
+pull:setup:artifacts:
+  script:
+    - echo "Pulling artifacts from parent pipeline ${RP_PARENT_PIPELINE_ID}"
+  stage: .pre
+  needs:
+    pipeline: $RP_PARENT_PIPELINE_ID
+    job: publish:scripts
+  rules:
+    - if: $RP_PARENT_PIPELINE_ID && $RP_PARENT_PIPELINE_ID != 'pull'
+  artifacts:
+    paths:
+      - .config/*
+      - semver.py
+      - release.sh

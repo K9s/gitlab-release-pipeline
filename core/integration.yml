@@ -1,6 +1,11 @@
+.integration:trigger:
+  variables:
+    _: ''
+
 integration:trigger:
   extends:
     - .integration
+    - .integration:trigger
   stage: integration
   rules:
     - if: $RP_INTEGRATION_TRIGGER_ENABLED == 'true'

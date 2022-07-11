@@ -23,4 +23,6 @@ build:candidate:
   rules:
     - if: $RP_BUILDS_DISABLED == 'true'
       when: never
+    - if: $RP_CANDIDATE_BUILD_DISABLED == 'true'
+      when: never
     - !reference [.release_rules, rules]

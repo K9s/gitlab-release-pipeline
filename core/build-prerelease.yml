@@ -1,26 +1,30 @@
-.build:alpha:needs:
+.build:prerelease:needs:
   needs:
     - job: 'set:version'
+      optional: true
     - job: 'gate:preconditions'
+      optional: true
     - job: 'build:debug'
       artifacts: false
       optional: true
 
-.build:alpha:
+.build:prerelease:
   variables:
     PRE_RELEASE: a$BUILD_NUMBER
-    _SEMVER: $ALPHA_SEMVER
-    SEMVER: $ALPHA_SEMVER
+    _SEMVER: $PRERELEASE_SEMVER
+    SEMVER: $PRERELEASE_SEMVER
   needs:
-    - !reference [.build:alpha:needs, needs]
+    - !reference [.build:prerelease:needs, needs]
 
-build:alpha:
+build:prerelease:
   extends:
     - .build_base
     - .build
-    - .build:alpha
+    - .build:prerelease
     - .build:override
   rules:
     - if: $RP_BUILDS_DISABLED == 'true'
+      when: never
+    - if: $RP_PRERELEASE_BUILD_DISABLED == 'true'
       when: never
     - !reference [.non-release_rules, rules]

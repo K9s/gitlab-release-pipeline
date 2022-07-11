@@ -8,13 +8,14 @@ gate:prod:
   rules:
     - if: $RP_DEPLOYS_DISABLED == 'true' || $RP_PRODUCTION_DEPLOY_DISABLED == 'true'
       when: never
-    - if: $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true' && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-      when: on_success
-    - !reference [.release_rules, rules]
+    - !reference [.release_rules, continuous_deployment]
 
 .deploy:prod:needs:
   needs:
     - job: 'set:version'
+      optional: false
+    - job: 'publish:candidate'
+      optional: true
     - job: 'gate:prod'
 
 .deploy:prod:
@@ -32,12 +33,8 @@ deploy:prod:
     - .deploy:prod
     - .deploy:override
   stage: prod
-  variables:
-    GIT_STRATEGY: none
   rules:
-    - if: $RP_DEPLOYS_DISABLED == 'true' || $RP_PRODUCTION_DEPLOY_DISABLED == 'true'
-      when: never
-    - !reference [.release_rules, rules]
+    - !reference [gate:prod, rules]
   resource_group: global-prod-deploy
 
 .deploy:prod:stop:
@@ -58,5 +55,6 @@ deploy:prod:stop:
     - !reference [.release_rules, rules]
   needs:
     - job: 'set:version'
+      optional: false
     - job: 'deploy:prod'
   when: manual

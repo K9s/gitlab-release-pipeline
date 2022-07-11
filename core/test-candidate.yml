@@ -1,7 +1,9 @@
 .test:candidate:needs:
   needs:
     - job: 'set:version'
+      optional: false
     - job: 'gate:preconditions'
+      optional: false
     - job: 'build:candidate'
       optional: true
 
@@ -21,4 +23,6 @@ test:candidate:
   rules:
     - if: $RP_TESTS_DISABLED == 'true'
       when: never
-    - !reference [.release_rules, rules]
+    - if: $RP_CANDIDATE_TESTS_DISABLED == 'true'
+      when: never
+    - !reference [build:candidate, rules]

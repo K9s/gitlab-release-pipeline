@@ -6,4 +6,5 @@ variables:
   RP_DEPLOYS_DISABLED: 'true'
   RP_PUBLISH_DISABLED: 'true'
   RP_BUILDS_DISABLED: 'true'
+  RP_DEBUG_TESTS_ENABLED: 'true'
   RP_TEMPLATE_NAME: 'script-python'

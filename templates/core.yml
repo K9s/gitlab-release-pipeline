@@ -1,14 +1,17 @@
 include:
   - local: 'core/stages.yml'
 
-  - local: 'core/setup.yml'
-  - local: 'core/semver.yml'
-  - local: 'core/lint.yml'
+  - local: 'core/pre.yml'
+  - local: 'core/precondition.yml'
+  - local: 'core/prebuild.yml'
   - local: 'core/build.yml'
   - local: 'core/test.yml'
+  - local: 'core/prerelease.yml'
   - local: 'core/publish.yml'
+  - local: 'core/release.yml'
   - local: 'core/deploy.yml'
   - local: 'core/integration.yml'
+  - local: 'core/postrelease.yml'
 
   # Gitlab Provided
   - local: 'core/code-quality.yml'
@@ -36,3 +39,5 @@ variables:
 
   RP_GITLAB_RELEASE_PREFIX: '[Release]'
   RP_SEMVER_BUMP_JOBS_DISABLED: 'true'
+  RP_SEMVER_INCLUDE_BUILD: 'true'
+  RP_INCLUDE_PRECONDITIONS: 'true'

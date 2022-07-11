@@ -14,6 +14,9 @@ gate:preprod:
 .deploy:preprod:needs:
   needs:
     - job: 'set:version'
+      optional: false
+    - job: 'publish:candidate'
+      optional: true
     - job: 'gate:preprod'
 
 .deploy:preprod:
@@ -33,9 +36,7 @@ deploy:preprod:
     - .deploy:override
   stage: preprod
   rules:
-    - if: $RP_DEPLOYS_DISABLED == 'true'
-      when: never
-    - !reference [.release_rules, rules]
+    - !reference [gate:preprod, rules]
   resource_group: global-preprod-deploy
 
 .deploy:preprod:stop:
@@ -51,10 +52,9 @@ deploy:preprod:stop:
     - .deploy:preprod:stop
   stage: preprod
   rules:
-    - if: $RP_DEPLOYS_DISABLED == 'true'
-      when: never
-    - !reference [.release_rules, rules]
+    - !reference [gate:preprod, rules]
   needs:
     - job: 'set:version'
+      optional: false
     - job: 'deploy:preprod'
   when: manual

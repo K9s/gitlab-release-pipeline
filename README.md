@@ -202,7 +202,7 @@ tags and pushing into a container registry or even updating a document store wit
 The RP has two 'kinds' of publishing that are often configured exactly the same but serve different
 purposes.
 
-Prerelease: Publishes non-candidate artifacts ie alpha or debug that are intended for internal use only. These
+Prerelease: Publishes non-candidate artifacts ie prerelease or debug that are intended for internal use only. These
 artifacts can be used for testing, integration, or deployment to non-prod environments.
 
 Release: Publishes candidate artifacts that are intended for general use. These artifacts can be used for any
@@ -251,20 +251,21 @@ purposes.
 
 RP Stages are defined in [stages.yml](core/stages.yml) 
 
-  - semver: Handle any semver jobs such as `set:version` and version bumping `bump:*`
-  - prebuild: Do any prebuild jobs like `lint:check`
+  - precondition: Handle jobs such as `set:version` and version bumping `bump:*`
+  - prebuild: Do any prebuild jobs like `lint:check` and `gate:preconditions`
   - build: Do build jobs such as `build:*`
   - postbuild: Unused by default, available for [Arbitrary Jobs](TODO)
   - pretest: Unused by default, available for [Arbitrary Jobs](TODO)
   - test: Run tests jobs such as `test:*`
   - posttest: Unused by default, available for [Arbitrary Jobs](TODO)
-  - prerelease: `gate:prerelease` to ensure all test jobs are complete and `publish:alpha`, `publish:debug` jobs
+  - prerelease: `gate:prerelease` to ensure all test jobs are complete and `publish:prerelease`, `publish:debug` jobs
   - preprod: Do deploys such as `deploy:dev`, `deploy:preprod`
-  - accessibility
-  - integration
-  - release
-  - prod
-  - postrelease
+  - accessibility: Unused by default, available for [Arbitrary Jobs](TODO)
+  - integration: Final integration testing before release.  Includes jobs like `integration:trigger`
+  - release: Jobs that effectuate a 'release' this includes jobs like `gate:release`, `gitlab:release` and 
+    `publish:release`
+  - prod: Do production deploy ala `deploy:prod`
+  - postrelease: Do any final wrapup and includes jobs like `set:stable:tag`
 
 ## Core Jobs
 
@@ -278,11 +279,15 @@ TODO
 
 TODO
 
-### Semver/Setup
+### Preconditions
 
 TODO
 
 #### `set:version`
+
+TODO
+
+### `gate:preconditions`
 
 TODO
 
@@ -337,7 +342,7 @@ PRE_RELEASE=
 
 TODO
 
-#### `build:alpha`
+#### `build:prerelease`
 
 TODO
 
@@ -358,7 +363,7 @@ PRE_RELEASE=
 
 TODO
 
-#### `test:alpha`
+#### `test:prerelease`
 
 TODO
 
@@ -378,7 +383,7 @@ PUBLISH_JOB=
 
 TODO
 
-#### `publish:alpha`
+#### `publish:prerelease`
 
 TODO
 
@@ -506,7 +511,7 @@ Every core job is configured via extension points. Final job configuration is a 
 Extension point jobs are prefixed with a `.` and their name shadows the job that will be extended by them.
 
 Direct modification of `core:jobs` should **be avoided**.... use extension points only.  It is considered a bug if 
-direct modification of a job is needed.
+direct modification of a job is needed.  The exception being [Replacing jobs](TODO).
 
 More specific extension points supersede less specific extension points meaning they can override fields. For 
 example, you can define generally how a build occurs in `.build` but have a more specific definition for `.build:debug`
@@ -515,11 +520,12 @@ example, you can define generally how a build occurs in `.build` but have a more
 
 - `.base`
 - `.lint`, `.lint:check`
-- `.build`, `.build:debug`, `.build:candidate` `.build:alpha`
-- `.test`, `.test:debug` `.test:candidate`, `.test:alpha`
-- `.publish`, `.publish:alpha` `.publish:debug`, `.publish:candidate`, `.gitlab:release`
-- `.deploy`, `.deploy:dev`, `.deploy:preprod`, `.deploy:prod`
+- `.build`, `.build:debug`, `.build:candidate` `.build:prerelease`, `.build:override`
+- `.test`, `.test:debug` `.test:candidate`, `.test:prerelease`, `.test:override`
+- `.publish`, `.publish:prerelease` `.publish:debug`, `.publish:candidate`, `.gitlab:release`, `.publish:override`
+- `.deploy`, `.deploy:dev`, `.deploy:preprod`, `.deploy:prod`, `.deploy:override`
 - `.deploy:stop`, `.deploy:dev:stop`, `.deploy:preprod:stop`, `.deploy:prod:stop`
+- `.integration`, `.integration:trigger`
 
 ### Overrides
 
@@ -576,7 +582,8 @@ TODO
 #RP_PRODUCTION_DEPLOY_DISABLED:
 #RP_ALLOW_FLAKE8_FAILURE:
 #RP_SEMVER_BUILD_REF:
-
+#RP_SEMVER_INCLUDE_BUILD:
+#RP_INCLUDE_PRECONDITIONS:
 #RP_SEMVER_BUMP_JOBS_DISABLED:
 ```
 ---
@@ -615,6 +622,12 @@ When set to `build`
       kick off a pipeline with an older build will prevent the pipeline from continuing ie 1.2.3+10 will fail.
 ---
 
+##### Replacing jobs
+Certain jobs are extended in such a way that they can be overridden completely to swap in a custom implementation.  
+
+###### Overriding `set:version`
+
+###### Overriding `gitlab:release`
 
 #### Internal
 
@@ -637,7 +650,7 @@ RP_TEMPLATE_NAME: 'core'
 #RP_TEMPLATE_PROJECT_NAME:
 #RP_BASE_IMAGE:
 #RP_IMAGE_TAG:
-
+#RP_RELEASE_BRANCH:
 #RELEASE_PASS:
 #RELEASE_USER:
 ```
@@ -705,7 +718,7 @@ TODO
 
 TODO
 
-#### Specifying `VERSION` and `BUILD_NUMBER` explicitly
+#### Specifying `SEMVER`, `VERSION` and `BUILD_NUMBER` explicitly
 
 ### Internals
 

@@ -15,7 +15,6 @@ gate:release:
       echo "Expected to release ${RELEASE_SEMVER}...checking for issues..."
       export RP_SEMVER_BUILD_REF=BUILD
       ${CI_PROJECT_DIR}/release.sh release
-      echo "🚀 Release is a GO 🚀 "
     - |
       #### Bump Version Code ####
       set -e
@@ -41,42 +40,17 @@ gate:release:
       else
         echo "VERSION_CODE not set, not doing VERSION_CODE bump"
       fi
+    - |
+      #### Lets GO! ####
+      echo "🚀 Release is a GO 🚀 "
 
   when: manual
   allow_failure: false
   interruptible: true
   resource_group: $APP-gate-release
   rules:
-    - if: $RP_ENABLE_CONTINUOUS_DEPLOYMENT == 'true' && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-      when: on_success
-    - !reference [.release_rules, rules]
+    - !reference [.release_rules, continuous_deployment]
   dependencies: !reference [.gate_base, dependencies]
-
-.publish:candidate:needs:
-  needs:
-    - job: 'set:version'
-    - job: 'gate:preconditions'
-    - job: 'build:candidate'
-      optional: true
-    - job: 'gate:release'
-
-.publish:candidate:
-  variables:
-    PUBLISH_TYPE: 'candidate'
-  needs:
-    - !reference [.publish:candidate:needs, needs]
-
-publish:candidate:
-  extends:
-    - .publish_base
-    - .publish
-    - .publish:candidate
-    - .publish:override
-  stage: release
-  rules:
-    - if: $RP_PUBLISH_DISABLED == 'true'
-      when: never
-    - !reference [.release_rules, rules]
 
 .gitlab:release:needs:
   needs:
@@ -91,15 +65,9 @@ publish:candidate:
       optional: true
 
 .gitlab:release:
-  stage: release
   needs:
     - !reference [.gitlab:release:needs, needs]
-
-gitlab:release:
-  extends:
-    - .gitlab:release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  stage: release
   script:
     - echo "Releasing ${APP} version ${VERSION}"
   release:
@@ -107,5 +75,10 @@ gitlab:release:
     description: $DESCRIPTION
     tag_name: $TAG
     ref: $CI_COMMIT_SHA
+
+gitlab:release:
+  stage: release
+  extends:
+    - .gitlab:release
   rules:
     - !reference [.release_rules, rules]

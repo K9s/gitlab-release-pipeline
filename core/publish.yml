@@ -1,6 +1,7 @@
 include:
+  - local: core/publish-candidate.yml
+  - local: core/publish-debug.yml
   - local: core/publish-prerelease.yml
-  - local: core/publish-release.yml
 
 .publish_base:
   extends:

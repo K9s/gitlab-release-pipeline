@@ -28,6 +28,7 @@
       dotenv: $DIR/$CI_JOB_NAME.env
   needs:
     - job: 'set:version'
+      optional: true
   resource_group: $APP-release
 
 bump:patch:

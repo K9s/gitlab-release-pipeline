@@ -1,30 +1,28 @@
-.test:debug:needs:
+.test:prerelease:needs:
   needs:
     - job: 'set:version'
       optional: true
     - job: 'gate:preconditions'
       optional: true
-    - job: 'build:debug'
+    - job: 'build:prerelease'
       optional: true
 
-.test:debug:
+.test:prerelease:
   variables:
-    TEST_TYPE: 'debug'
+    TEST_TYPE: 'prerelease'
   needs:
-    - !reference [.test:debug:needs, needs]
+    - !reference [.test:prerelease:needs, needs]
 
-test:debug:
+test:prerelease:
   extends:
     - .test_base
     - .test
-    - .test:debug
+    - .test:prerelease
     - .test:override
   stage: test
   rules:
-    - if: $RP_DEBUG_TESTS_ENABLED == 'true'
-      when: on_success
     - if: $RP_TESTS_DISABLED == 'true'
       when: never
-    - if: $RP_DEBUG_TESTS_DISABLED == 'true'
+    - if: $RP_PRERELEASE_TESTS_DISABLED == 'true'
       when: never
-    - !reference [build:debug, rules]
+    - !reference [build:prerelease, rules]

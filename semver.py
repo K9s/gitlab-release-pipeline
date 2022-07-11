@@ -16,7 +16,8 @@ import functools
 sys.setrecursionlimit(10000)
 
 TAG_PREFIX = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'")
-IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
+RP_IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
+RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED', False)
 
 
 def _parse_version(self, version: Union[Version, str]):
@@ -53,6 +54,7 @@ class SemVer:
         self.recursion_depth = 0
 
         self.current_version_depth = 0
+        self._current_version = None
 
         self.tag_prefix = TAG_PREFIX.format(self=self)
 
@@ -112,6 +114,12 @@ class SemVer:
                 _versions.append(Version(f"0.0.0+{self.build}"))
 
         return sorted(_versions)[-1]
+
+    @property
+    def current_version(self):
+        if self._current_version is None:
+            self._current_version = self.get_current_version()
+        return self._current_version
 
     def get_current_version(self,
                             target: Version = None,
@@ -197,21 +205,20 @@ class SemVer:
     def can_bump_to(self,
                     bump: str = 'patch',
                     version: Union[Version, str, None] = None):
-        current_version = self.get_current_version()
         if version is None:
-            version = self.get_next_version(bump=bump, version=current_version)
+            version = self.get_next_version(bump=bump, version=self.current_version)
 
         versions = self.get_versions(bump=bump, version=self.get_next_version(bump=bump, version=version))
 
-        if versions:
+        if versions and not RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED:
             latest_tagged_version = self.get_latest_version(bump=bump, version=versions[-1])
             ancestor_version = self.get_current_version(target=latest_tagged_version)
             if ancestor_version == Version('0.0.0rc0'):
-                raise EnvironmentError(f'Unable to {bump} bump {self.app} {current_version} to {version} '
+                raise EnvironmentError(f'Unable to {bump} bump {self.app} {self.current_version} to {version} '
                                        f'unless {latest_tagged_version} (Latest tagged version) is an ancestor.  '
                                        f'You probably need to rebase/branch from latest tagged version.')
 
-        if version in versions and not IGNORE_ALREADY_TAGGED:
+        if version in versions and not RP_IGNORE_ALREADY_TAGGED:
             raise EnvironmentError(f'Unable to {bump} bump {self.app}. Version {version} has already been tagged!')
 
         versions.append(version)
@@ -235,7 +242,7 @@ class SemVer:
 def dotenv(version: Version, semver):
     lines = [
         f'VERSION={version.public}',
-        f'CURRENT_VERSION={semver.get_current_version()}',
+        f'CURRENT_VERSION={semver.current_version}',
         f'RELEASE_SEMVER={version}',
         f'VERSION_MAJOR={version.major}',
         f'VERSION_MINOR={version.minor}',
@@ -248,22 +255,22 @@ def dotenv(version: Version, semver):
 if __name__ == "__main__":
     semver = SemVer('.', app=os.getenv('APP'))
 
-    SEMVER = os.getenv('SEMVER', None)
+    SEMVER = os.getenv('SEMVER')
+
+    BUILD = 1 if os.getenv("BUILD") == '' else os.getenv("BUILD", 1)
 
     if SEMVER:
         __version = _parse_version(semver, version=SEMVER)
-        semver.build = __version.local if __version.local else os.getenv("BUILD", 1)
-        __current_version = semver.get_current_version()
+        semver.build = __version.local if __version.local else BUILD
     else:
         VERSION = os.getenv('VERSION')
-
         if VERSION == "$VERSION":
             VERSION = None
 
         if VERSION:
             VERSION = _parse_version(semver, version=VERSION)
             if not VERSION.local:
-                VERSION = _parse_version(semver, f'{VERSION.public}+{os.getenv("BUILD", 1)}')
+                VERSION = _parse_version(semver, f'{VERSION.public}+{BUILD}')
 
             if os.getenv("BUILD") and os.getenv("BUILD") != VERSION.local:
                 raise EnvironmentError(
@@ -272,17 +279,19 @@ if __name__ == "__main__":
 
             semver.build = VERSION.local
         else:
-            semver.build = os.getenv("BUILD", 1)
+            semver.build = BUILD
 
-        __current_version = semver.get_current_version()
-        __version = semver.can_bump_to(bump=os.getenv('RP_BUMP', 'patch'),
+        RP_BUMP = os.getenv('RP_BUMP', 'patch')
+        if RP_BUMP == "$RP_BUMP":
+            RP_BUMP = 'patch'
+
+        __version = semver.can_bump_to(bump=RP_BUMP,
                                        version=VERSION)
 
     fire.Fire({
         'get': lambda: __version.public,
         'get-build': lambda: semver.build,
-        'get-semver': lambda: __version,
-        'get-current': lambda: __current_version,
+        'get-current': lambda: semver.current_version,
         'get-minor': lambda: __version.minor,
         'get-major': lambda: __version.major,
         'get-patch': lambda: __version.micro,

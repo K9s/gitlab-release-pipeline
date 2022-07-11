@@ -1,5 +1,5 @@
 include:
-  - local: core/build-alpha.yml
+  - local: core/build-prerelease.yml
   - local: core/build-candidate.yml
   - local: core/build-debug.yml
 
