@@ -18,16 +18,24 @@ sys.setrecursionlimit(10000)
 TAG_PREFIX = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'")
 RP_IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
 RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED', False)
+RP_PRE_RELEASE_TAG_CLEANUP = os.getenv('RP_PRE_RELEASE_TAG_CLEANUP', '').split(',')
 
 
 def _parse_version(self, version: Union[Version, str]):
     if isinstance(version, Version):
         _version = version
     else:
-        _version = parse_semver(str(version).
-                                replace(self.tag_prefix, '').
-                                replace('_', '+').
-                                replace('bump-', ''))
+        version_str = str(str(version).
+                          replace(self.tag_prefix, '').
+                          replace('_', '+').
+                          replace('bump-', ''))
+
+        for tag_cleanup in RP_PRE_RELEASE_TAG_CLEANUP:
+            version_str = version_str.replace(tag_cleanup, '')
+
+        version_str = version_str.strip('.').strip('-')
+
+        _version = parse_semver(version_str)
 
     if not isinstance(_version, Version) and not str(version).endswith('stable'):
         raise Exception(f'Unable to parse version: {_version} as Version')
@@ -65,6 +73,8 @@ class SemVer:
             'version': _parse_version(self, version=x.name),
             'is_bump': x.name.startswith('bump-')}
             for x in self.repo.tags if x.name.replace('bump-', '').startswith(self.tag_prefix)}
+
+        self.tags = {key: value for (key, value) in self.tags.items() if not value['version'].is_prerelease}
 
         self.versions = sorted([x['version'] for x in self.tags.values() if isinstance(x['version'], Version) and not x['is_bump']])
 
@@ -177,25 +187,25 @@ class SemVer:
     def get_next_version(self,
                          bump: str = 'patch',
                          version: Union[Version, str] = '0.0.0'):
-        latest_version = self.get_latest_version(bump=bump, version=version)
+        latest = self.get_latest_version(bump=bump, version=version)
 
         if bump == 'build':
-            next_version = Version(f'{latest_version.public}+{self.build}')
+            next_version = Version(f'{latest.public}+{self.build}')
         elif bump == 'patch':
-            if latest_version in self.versions:
-                next_version = Version(f'{latest_version.major}.{latest_version.minor}.{latest_version.micro + 1}+{self.build}')
+            if latest in self.versions:
+                next_version = Version(f'{latest.major}.{latest.minor}.{latest.micro + 1}+{self.build}')
             else:
-                next_version = Version(f'{latest_version.major}.{latest_version.minor}.{latest_version.micro}+{self.build}')
+                next_version = Version(f'{latest.major}.{latest.minor}.{latest.micro}+{self.build}')
         elif bump == 'minor':
-            if latest_version in self.versions:
-                next_version = Version(f'{latest_version.major}.{latest_version.minor + 1}.0+{self.build}')
+            if latest in self.versions:
+                next_version = Version(f'{latest.major}.{latest.minor + 1}.0+{self.build}')
             else:
-                next_version = Version(f'{latest_version.major}.{latest_version.minor}.0+{self.build}')
+                next_version = Version(f'{latest.major}.{latest.minor}.0+{self.build}')
         elif bump == 'major':
-            if latest_version in self.versions:
-                next_version = Version(f'{latest_version.major + 1}.0.0+{self.build}')
+            if latest in self.versions:
+                next_version = Version(f'{latest.major + 1}.0.0+{self.build}')
             else:
-                next_version = Version(f'{latest_version.major}.0.0+{self.build}')
+                next_version = Version(f'{latest.major}.0.0+{self.build}')
         else:
             raise Exception(f'Invalid bump: {bump}')
 
