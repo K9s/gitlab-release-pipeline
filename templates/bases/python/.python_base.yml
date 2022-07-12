@@ -19,7 +19,7 @@
       ./config.sh || true
       cd ${DIR}
     else
-      echo "Already in virtualenv ${VIRTUAL_ENV}, not skipping "
+      echo "Already in virtualenv ${VIRTUAL_ENV}, skipping creation of virtualenv"
     fi
 
 .base:
