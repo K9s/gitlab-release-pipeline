@@ -9,12 +9,18 @@
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   before_script: |
     #### Preparing virtualenv ####
-    pip install virtualenv
-    virtualenv venv/${APP}
-    source venv/${APP}/bin/activate
-    which python
-    ./config.sh || true
-    cd ${DIR}
+    
+    if [[ -z ${VIRTUAL_ENV} ]]; then
+      pip install virtualenv
+      virtualenv venv/${APP}
+      echo "Created virtualenv: venv/${APP}"
+      source venv/${APP}/bin/activate
+      which python
+      ./config.sh || true
+      cd ${DIR}
+    else
+      echo "Already in virtualenv ${VIRTUAL_ENV}, not skipping "
+    fi
 
 .base:
   image: python:3.10.4
