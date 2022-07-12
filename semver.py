@@ -18,7 +18,7 @@ sys.setrecursionlimit(10000)
 TAG_PREFIX = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'")
 RP_IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
 RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED', False)
-RP_PRE_RELEASE_TAG_CLEANUP = [x for x in os.getenv('RP_PRE_RELEASE_TAG_CLEANUP', '').split(',') if x]
+RP_RC_TAG_FIXUP_SUFFIXES = [x for x in os.getenv('RP_RC_TAG_FIXUP_SUFFIXES', '').split(',') if x]
 
 
 def _parse_version(self, version: Union[Version, str]):
@@ -30,7 +30,7 @@ def _parse_version(self, version: Union[Version, str]):
                           replace('_', '+').
                           replace('bump-', ''))
 
-        for tag_cleanup in RP_PRE_RELEASE_TAG_CLEANUP:
+        for tag_cleanup in RP_RC_TAG_FIXUP_SUFFIXES:
             version_str = version_str.replace(tag_cleanup, 'rc')
 
         version_str = version_str.strip('.').strip('-')
