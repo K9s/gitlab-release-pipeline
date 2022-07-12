@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ci-gitlab.iml" filepath="$PROJECT_DIR$/.idea/ci-gitlab.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../gitlab/ds-rater-service/.idea/ds-rater-service.iml" filepath="$PROJECT_DIR$/../gitlab/ds-rater-service/.idea/ds-rater-service.iml" />
     </modules>
   </component>
 </project>

@@ -18,7 +18,7 @@ sys.setrecursionlimit(10000)
 TAG_PREFIX = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'")
 RP_IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
 RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED', False)
-RP_PRE_RELEASE_TAG_CLEANUP = os.getenv('RP_PRE_RELEASE_TAG_CLEANUP', '').split(',')
+RP_PRE_RELEASE_TAG_CLEANUP = [x for x in os.getenv('RP_PRE_RELEASE_TAG_CLEANUP', '').split(',') if x]
 
 
 def _parse_version(self, version: Union[Version, str]):
@@ -31,7 +31,7 @@ def _parse_version(self, version: Union[Version, str]):
                           replace('bump-', ''))
 
         for tag_cleanup in RP_PRE_RELEASE_TAG_CLEANUP:
-            version_str = version_str.replace(tag_cleanup, '')
+            version_str = version_str.replace(tag_cleanup, 'rc')
 
         version_str = version_str.strip('.').strip('-')
 
@@ -76,7 +76,8 @@ class SemVer:
 
         self.tags = {key: value for (key, value) in self.tags.items() if not value['version'].is_prerelease}
 
-        self.versions = sorted([x['version'] for x in self.tags.values() if isinstance(x['version'], Version) and not x['is_bump']])
+        self.versions = sorted([x['version'] for x in self.tags.values() if
+                                isinstance(x['version'], Version) and not x['is_bump']])
 
         version_tags = {}
         for tag in self.tags.values():
