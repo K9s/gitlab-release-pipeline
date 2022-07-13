@@ -96,7 +96,7 @@ echo "RP_TEMPLATE_NAME: ${RP_TEMPLATE_NAME}"
 echo "TAG_PREFIX: ${TAG_PREFIX}"
 echo "RP_SEMVER_BUILD_REF: ${RP_SEMVER_BUILD_REF}"
 echo "RP_BUMP: ${RP_BUMP}"
-echo "RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED: ${RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED}"
+echo "RP_LATEST_TAGGED_ANCESTOR_IGNORED: ${RP_LATEST_TAGGED_ANCESTOR_IGNORED}"
 echo "-----------------------------------------------"
 
 CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)

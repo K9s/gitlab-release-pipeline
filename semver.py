@@ -17,7 +17,7 @@ sys.setrecursionlimit(10000)
 
 TAG_PREFIX = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'")
 RP_IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
-RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED', False)
+RP_LATEST_TAGGED_ANCESTOR_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IGNORED', False)
 RP_RC_TAG_FIXUP_SUFFIXES = [x for x in os.getenv('RP_RC_TAG_FIXUP_SUFFIXES', '').split(',') if x]
 
 
@@ -221,7 +221,7 @@ class SemVer:
 
         versions = self.get_versions(bump=bump, version=self.get_next_version(bump=bump, version=version))
 
-        if versions and not RP_LATEST_TAGGED_ANCESTOR_IS_IGNORED:
+        if versions and not RP_LATEST_TAGGED_ANCESTOR_IGNORED:
             latest_tagged_version = self.get_latest_version(bump=bump, version=versions[-1])
             ancestor_version = self.get_current_version(target=latest_tagged_version)
             if ancestor_version == Version('0.0.0rc0'):
