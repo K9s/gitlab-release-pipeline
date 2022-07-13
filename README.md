@@ -12,12 +12,12 @@ The general goals of the RP are that it be...
 4) Flexible
 5) Solve common problems like semver and pipeline structure
 
-To these ends RP is `Opinionated in form but not in action` meaning that while it does define expectations around  
-jobs, ordering and general structure it does not 'do' anything by default. The actions around how to
-build, test, publish, deploy etc... are fully defined by the pipeline/template authors.
+To these ends RP is `Opinionated in form but not in action` meaning that while it does define expectations around jobs,
+ordering and general structure it does not 'do' anything by default. The actions around how to build, test, publish,
+deploy etc... are fully defined by the pipeline/template authors.
 
-The RP should behave in expected ways and as described in this document.  
-If a behavior is NOT expected please submit an issue.
+The RP should behave in expected ways and as described in this document. If a behavior is NOT expected please submit an
+issue.
 
 ## CI/CD and SDLC Concepts
 
@@ -35,21 +35,22 @@ PATCH version when you make backwards compatible bug fixes.
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
 ```
 
-The release pipeline considers major.minor.patch+build in it's semver handling.  See [`RP_BUMP` variable](TODO) for 
-more details.
+The release pipeline considers major.minor.patch+build in it's semver handling. See [`RP_BUMP` variable](TODO) for more
+details.
 
 Ideally semver should be handled automatically or at least in an automated manner. This is especially true for
 PATCH versions where the act of 'releasing' a particular version should automatically result in a 'bump' of version.
 
-RP handles Semver via [semver.py](TODO) which is used by the [`set:version`](TODO) job to determine
-current version, version to release (the bump) and does various checks to ensure the version to be built/released
+RP handles Semver via [semver.py](TODO) which is primarily used by the [`set:version`](TODO) job to determine
+current version, set version to release (the bump) and does various checks to ensure the version to be built/released
 is valid.
 
 All versioning is handled via git tags and the results of `set:version` are available to any job via environment
 variables via needs (see [Environment Variables](TODO) and [DAG](TODO) sections below for more details)
 
 The RP also includes jobs to automate [major](TODO), [minor](TODO) and [patch](TODO) semver bumps as well as
-support for passing arbitrary version via a pipeline variable.
+support for passing arbitrary version via a pipeline variable. This functionality is disabled by default see
+[RP_SEMVER_BUMP_JOBS_DISABLED](TODO) variable for more details.
 
 ### Job
 
@@ -57,11 +58,10 @@ A job is named execution of a task or set of tasks that produce some effect or a
 gitlab are configured via yml and the format is defined in the
 [.gitlab-ci.yml keyword reference](https://docs.gitlab.com/ee/ci/yaml/gitlab_ci_yaml.html).
 
-In simple terms a job is a place where a script can be executed in a defined context so that a desired result can be
-achieved.
+In simple terms a job is a place where a script can be executed.
 
-The release pipeline defines a set of jobs and framework conventions that makes building a complete release
-pipeline 'batteries included' and hopefully easier.
+The release pipeline defines a set of jobs and a framework of conventions that make building complete pipelines
+'batteries included' and hopefully quicker and less arduous for teams/devs.
 
 See [Core Concepts](TODO) below for more description of 'what' is provided.
 
@@ -110,26 +110,25 @@ predefined variables that gitlab provides. Environment variables can come from o
 Jobs in Gitlab live in a stage and by default all jobs in a stage execute in parallel. Stages do not begin
 execution until jobs from prior stage has completed.
 
-This works but there often times when jobs in a future stage should be able to start early if there are no
+This works but there often times when jobs in a future stage _should_ be able to start early if there are no
 dependencies. Gitlab handles this with 'needs'. A need is a way mark jobs as part of the
 [DAG](https://en.wikipedia.org/wiki/Directed_acyclic_graph). Jobs with 'needs' do
 not depend on stage ordering. The DAG can be visualized a couple different ways in the UI and can be a valuable way to
 understand the flow of a pipeline. A job can have a need on any job in the current stage or prior stage. As the name
 implies if there are any _circular dependencies_ that DAG will **become invalid and fail to generate a pipeline**.
 
-The RP makes extensive use of `needs` for almost all jobs (see Gates below). Needs also define which jobs
+The RP makes extensive use of `needs` for almost all jobs (except Gates, see below). Needs generally* define which jobs
 will have their artifacts pulled. This means that a `test` job will have a need on the associated `build` so the build
-artifact can be tested.
+artifact can be tested/used by the test job.
 
-* Note that Gitlab also has the concept of 'dependencies' that define which jobs to pull artifacts from. This is
-  still valid but of little utility and does not affect the DAG.
+* Note that Gitlab also has the concept of 'dependencies' that define which jobs to pull artifacts from.
 
 ## Core Concepts
 
 The following concepts are the core to what release pipeline is and what it implements as a framework. Not all of
-these concepts will be needed by all pipelines, but they are all implemented to work well together, share similar
-patterns. A core aim of RP is that it will 'do the right thing' and work'in expected ways'.
-Teams should be able to rely on the functionality of the pipeline without 'weirdness'. If anything
+these concepts will be needed by all pipelines (and most can be disabled if not neede), but they are all implemented 
+to work well together, share similar patterns. A core aim of RP is that it will 'do the right thing' and work 
+'in expected ways'. Teams should be able to rely on the functionality of the pipeline without 'weirdness'. If anything
 behaves in ways that are outside expectations and/or not documented here please report an issue.
 
 Also, while it might be edifying to understand exactly how each job works the _interface_ (as defined in this
@@ -188,10 +187,11 @@ A test is the validation that an artifact is fit for function and _could_ be rel
 
 Unittests are the typical example of the kinds of tasks that `test` jobs should represent. Similar to builds care
 should be taken to ensure that the test tasks are as efficient as possible. If at all possible do NOT
-'build' anything as doing so during testing as doing invalidates the already built artifact.
+'build' anything as doing so during testing invalidates the already built artifact.
 
-In an ideal state the decision to release is purely a function of whether tests pass or not (see [Gates](TODO) for
-how to ensure a manual interaction occurs)
+In an ideal state, post test stage, there should be high confidence that the artifact __could__ be released.  
+RP does support continuous deployment via [RP_ENABLE_CONTINUOUS_DEPLOYMENT](TODO) which turns all manual gates to 
+automatic which means that releases happen without human intervention.
 
 ### `Publish`
 
@@ -236,7 +236,7 @@ It is usually easier to simply kick off another pipeline run which will build to
 ### `Deploy`
 
 A deployment is when an artifact is put into a particular environment for use. Not all pipelines will need the
-concept of a deployment, for example a python library or docker container used as a build container.
+concept of a deployment, for example a python library or docker container.
 
 Similar to publishing, deploys have three 'kinds' that are often configured exactly the same but serve different
 purposes.
@@ -249,23 +249,27 @@ purposes.
 
 ## Stages
 
-RP Stages are defined in [stages.yml](core/stages.yml) 
+RP Stages are defined in [stages.yml](core/stages.yml)
 
-  - precondition: Handle jobs such as `set:version` and version bumping `bump:*`
-  - prebuild: Do any prebuild jobs like `lint:check` and `gate:preconditions`
-  - build: Do build jobs such as `build:*`
-  - postbuild: Unused by default, available for [Arbitrary Jobs](TODO)
-  - pretest: Unused by default, available for [Arbitrary Jobs](TODO)
-  - test: Run tests jobs such as `test:*`
-  - posttest: Unused by default, available for [Arbitrary Jobs](TODO)
-  - prerelease: `gate:prerelease` to ensure all test jobs are complete and `publish:prerelease`, `publish:debug` jobs
-  - preprod: Do deploys such as `deploy:dev`, `deploy:preprod`
-  - accessibility: Unused by default, available for [Arbitrary Jobs](TODO)
-  - integration: Final integration testing before release.  Includes jobs like `integration:trigger`
-  - release: Jobs that effectuate a 'release' this includes jobs like `gate:release`, `gitlab:release` and 
-    `publish:release`
-  - prod: Do production deploy ala `deploy:prod`
-  - postrelease: Do any final wrapup and includes jobs like `set:stable:tag`
+A [visual](docs/stages-overview.png) reference
+
+- precondition: Handle jobs such as `set:version` and version bumping `bump:*`
+- prebuild: Do any prebuild jobs like `lint:check` and `gate:preconditions`
+- build: Do build jobs such as `build:*`
+- postbuild: Unused by default, available for [Arbitrary Jobs](TODO)
+- pretest: Unused by default, available for [Arbitrary Jobs](TODO)
+- test: Run tests jobs such as `test:*`
+- posttest: Unused by default, available for [Arbitrary Jobs](TODO)
+- prerelease: `gate:prerelease` to ensure all test jobs are complete and `publish:prerelease`, `publish:debug` jobs
+- dev: Deploy `deploy:dev`
+- accessibility: Unused by default, available for [Arbitrary Jobs](TODO)
+- integration: Final integration testing before release. Includes jobs like `integration:trigger`
+- release: Jobs that effectuate a 'release' this includes jobs like `gate:release`, `gitlab:release` and
+  `publish:release`
+- postrelease: jobs like `set:stable:tag`
+- preprod: Deploy `deploy:preprod`
+- prod: Do production deploy ala `deploy:prod`
+- wrapup:
 
 ## Core Jobs
 
@@ -502,18 +506,19 @@ TODO
 
 ## Customization
 
-Customization of core jobs is via configuration of `.core:jobs` (dot prefixed jobs called extension points) and setting variables.
+Customization of core jobs is via configuration of `.core:jobs` (dot prefixed jobs or extension points) and by setting 
+variables.
 
 ### Extension Points
 
-Every core job is configured via extension points. Final job configuration is a result of gitlab 
-[extends](https://docs.gitlab.com/ee/ci/yaml/#extends) that pull together these extension points. 
+Every core job is configured via extension points. Final job configuration is a result of gitlab
+[extends](https://docs.gitlab.com/ee/ci/yaml/#extends) that pull together these extension points.
 Extension point jobs are prefixed with a `.` and their name shadows the job that will be extended by them.
 
-Direct modification of `core:jobs` should **be avoided**.... use extension points only.  It is considered a bug if 
-direct modification of a job is needed.  The exception being [Replacing jobs](TODO).
+Direct modification of `core:jobs` should **be avoided**.... use extension points only. It is considered a bug if
+direct modification of a job is needed. The exception being [Replacing jobs](TODO).
 
-More specific extension points supersede less specific extension points meaning they can override fields. For 
+More specific extension points supersede less specific extension points meaning they can override fields. For
 example, you can define generally how a build occurs in `.build` but have a more specific definition for `.build:debug`
 
 #### Available Extension Points
@@ -531,10 +536,9 @@ example, you can define generally how a build occurs in `.build` but have a more
 
 Overrides are an escape valve and should only be used where the additive nature of extends will not work. Generally
 this can occur when there is a field in a job that is a list type and the user needs its value set for an entire type
-of job but doing so seems to have no effect. An example; setting 'needs' via the `.test` extension point will
-seemingly be ignored.
+of job but doing so has no effect. An example; setting 'needs' via the `.test` extension point will be ignored.
 
-This behavior is due to order that `test:*` jobs are extended and where the default set of 'needs' come exist.  
+This behavior is due to order that jobs are extended and where the default set of 'needs' come from.  
 Needs is a list type field and gitlab does not merge lists. Needs for core jobs are defined in the more specific dot
 job (ie `test:debug`) due to each job having different need targets (ie `test:debug` needs `build:debug` but not
 `build:candiate`). To solve this problem you either duplicate your configuration for every `test:*` job in your
@@ -550,7 +554,7 @@ Available overrides `.build:override`, `.test:override`, `.publish:override`, `.
 
 Features of the RP can also be controlled via variables. _most_ variables have an `RP_` prefix.  
 _Generally_ these variables have defaults that _should work_. Don't change/set variables unless needed to
-accomplish a specific outcome.
+accomplish a specific outcome/goal.
 
 #### Core
 
@@ -569,61 +573,88 @@ RP_GITLAB_RELEASE_PREFIX: '[Release]'
 
 TODO
 
-```
+```s
 #RP_CENTRAL_REGISTRY_PROJECT_ID:
 #RP_LINT_DISABLED:
 #RP_INTEGRATION_TRIGGER_ENABLED:
+
 #RP_BUILDS_DISABLED:
+#RP_CANDIDATE_BUILD_DISABLED:
 #RP_DEBUG_BUILD_DISABLED:
+#RP_PRERELEASE_BUILD_DISABLED:
+
 #RP_PUBLISH_DISABLED:
+#RP_CANDIDATE_PUBLISH_DISABLED
+#RP_DEBUG_PUBLISH_DISABLED:
+#RP_PRERELEASE_PUBLISH_DISABLED:
+
 #RP_ENABLE_CONTINUOUS_DEPLOYMENT:
 #RP_DEPLOYS_DISABLED:
-#RP_TESTS_DISABLED:
 #RP_PRODUCTION_DEPLOY_DISABLED:
+
+#RP_TESTS_DISABLED:
+#RP_CANDIDATE_TESTS_DISABLED:
+#RP_DEBUG_TESTS_DISABLED:
+#RP_DEBUG_TESTS_ENABLED:
+#RP_PRERELEASE_TESTS_DISABLED:
+
 #RP_ALLOW_FLAKE8_FAILURE:
 #RP_SEMVER_BUILD_REF:
 #RP_SEMVER_INCLUDE_BUILD:
 #RP_INCLUDE_PRECONDITIONS:
 #RP_SEMVER_BUMP_JOBS_DISABLED:
+#RP_LATEST_TAGGED_ANCESTOR_IGNORED:
+#RP_RC_TAG_FIXUP_SUFFIXES:
 ```
+
 ---
+
 ##### _`RP_BUMP`_
-Determines what identifier in the SemVer will be considered when deriving 'next_version'.  This is also 
-known as version bumping.  The implementation of this handing closely adheres to [SemVer](https://semver.org/#semantic-versioning-specification-semver).
+
+Determines what identifier in the SemVer will be considered when deriving 'next_version'. This is also
+known as version bumping. The implementation of this handing closely adheres
+to [SemVer](https://semver.org/#semantic-versioning-specification-semver).
 
 ##### default: patch
+
 ##### values: build, patch, minor, major
 
 Common to all:
- - `set:version` job will determine if the proposed next_version is a valid target (call can_bump_to() see 
-   [semver.py](TODO)) which will ensure the version can be bumped to without violating semver rules or conflict 
-   with existing releases (tags)
- - `set:version` will expose `VERSION`, `BUILD_NUMBER` and other envvars for use by build/test/publish jobs later in 
-   the pipeline. See [`set:version` job](TODO) for more details. 
- - All versions consider/include `BUILD_NUMBER` as a build identifier
+
+- `set:version` job will determine if the proposed next_version is a valid target (call can_bump_to() see
+  [semver.py](TODO)) which will ensure the version can be bumped to without violating semver rules or conflict
+  with existing releases (tags)
+- `set:version` will expose `VERSION`, `BUILD_NUMBER` and other envvars for use by build/test/publish jobs later in
+  the pipeline. See [`set:version` job](TODO) for more details.
+- All versions consider/include `BUILD_NUMBER` as a build identifier
 
 When set to anything other than `build`
- - The matching section in the core version is increased by 1
- - The build portion (section after '+') is informational only.
- - Conflicts will occur if the same core version is encountered and will prevent the pipeline from continuing.
-   - ie once semver 1.2.3+20 is released no other 1.2.3 versions can be released regardless of their build number
+
+- The matching section in the core version is increased by 1
+- The build portion (section after '+') is informational only.
+- Conflicts will occur if the same core version is encountered and will prevent the pipeline from continuing.
+    - ie once semver 1.2.3+20 is released no other 1.2.3 versions can be released regardless of their build number
 
 When set to `major` or `minor`
- - The sections to the right of the matching section are 0'd out ie SemVer spec is followed
- - ie ``Patch version MUST be reset to 0 when minor version is incremented. Patch and minor versions MUST be reset to 
-   0 when major version is incremented.``
+
+- The sections to the right of the matching section are 0'd out ie SemVer spec is followed
+- ie ``Patch version MUST be reset to 0 when minor version is incremented. Patch and minor versions MUST be reset to
+  0 when major version is incremented.``
 
 When set to `build`
- - Determining the ‘next_version’ is a direct pass through of the core version (no 'bumping' occurs)
- - Check to ensure that the next_version is not older the latest released version uses exact tags rather the core 
-   version. (build is respected)
- - Conflicts will _**not**_ occur so long as the build is greater than the latest published version.
-    - ie semver 1.2.3+20 can be released without a new pipeline run of 1.2.3+21 breaking.  Attempting to 
+
+- Determining the ‘next_version’ is a direct pass through of the core version (no 'bumping' occurs)
+- Check to ensure that the next_version is not older the latest released version uses exact tags rather the core
+  version. (build is respected)
+- Conflicts will _**not**_ occur so long as the build is greater than the latest published version.
+    - ie semver 1.2.3+20 can be released without a new pipeline run of 1.2.3+21 breaking. Attempting to
       kick off a pipeline with an older build will prevent the pipeline from continuing ie 1.2.3+10 will fail.
+
 ---
 
 ##### Replacing jobs
-Certain jobs are extended in such a way that they can be overridden completely to swap in a custom implementation.  
+
+Certain jobs are extended in such a way that they can be overridden completely to swap in a custom implementation.
 
 ###### Overriding `set:version`
 
@@ -669,9 +700,9 @@ CACHE_REQUEST_TIMEOUT: '20m'
 
 ### Adding environment variables to job output
 
-All jobs that extend `.base` (`lint:*`, `build:*`, `test:*`, `publish:*`, `deploy:*`) submit 
-[dotenv reports](https://docs.gitlab.com/ee/ci/yaml/artifacts_reports.html#artifactsreportsdotenv) this allows 
-dependent jobs to have access to environment variables such as PRE_RELEASE. To augment this capability simply 
+All jobs that extend `.base` (`lint:*`, `build:*`, `test:*`, `publish:*`, `deploy:*`) submit
+[dotenv reports](https://docs.gitlab.com/ee/ci/yaml/artifacts_reports.html#artifactsreportsdotenv) this allows
+dependent jobs to have access to environment variables such as PRE_RELEASE. To augment this capability simply
 echo or cat appropriately formatted variables to `$CI_PROJECT_DIR/rp.env`
 
 Note this is accomplished by using [after_script](https://docs.gitlab.com/ee/ci/yaml/#after_script) which means no
