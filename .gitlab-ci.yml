@@ -7,7 +7,7 @@ workflow:
         - .config/*
         - Dockerfile
         - requirements.txt
-        - semver.py
+        - release.py
         - release.sh
         - core/**/*
         - templates/**/*
@@ -141,7 +141,7 @@ publish:scripts:
   artifacts:
     paths:
       - .config/*
-      - semver.py
+      - release.py
       - release.sh
 
 set:stable:tag:

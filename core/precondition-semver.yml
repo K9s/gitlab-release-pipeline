@@ -13,8 +13,8 @@
     export RP_SEMVER_BUILD_REF=BUILD
     unset SEMVER
     ${CI_PROJECT_DIR}/release.sh check
-    TAG_PREFIX=$(${CI_PROJECT_DIR}/semver.py get-tag-prefix)
-    BUMP_VERSION=$(${CI_PROJECT_DIR}/semver.py get)
+    TAG_PREFIX=$(${CI_PROJECT_DIR}/release.py get-tag-prefix)
+    BUMP_VERSION=$(${CI_PROJECT_DIR}/release.py get)
     echo "${BUMP} Bumping to ${BUMP_VERSION}..."
     git tag -f bump-${TAG_PREFIX}${BUMP_VERSION}
     git push -f origin bump-${TAG_PREFIX}${BUMP_VERSION}

@@ -42,7 +42,7 @@ VERSION_CODE=$((${_APP}_VERSION_CODE+1))
 BUILD_NUMBER="${BUILD_NUMBER:-$CI_PIPELINE_IID}"
 RP_SEMVER_BUILD_REF=${RP_SEMVER_BUILD_REF:-BUILD_NUMBER}
 export BUILD=$(eval echo \${"$RP_SEMVER_BUILD_REF"})
-export BUILD=$("$project_dir"/semver.py get-build)
+export BUILD=$("$project_dir"/release.py get-build)
 
 if [[ -z "${BUILD}" ]]; then
   echo "BUILD was not able to be determined!"
@@ -51,13 +51,13 @@ fi
 
 git fetch --tags -f &> /dev/null || true
 
-if [[ $("$project_dir"/semver.py get) == '0.0.0' ]]; then
+if [[ $("$project_dir"/release.py get) == '0.0.0' ]]; then
   echo "Unable to determine version, fetching full history and trying again."
   git fetch --unshallow --quiet || true
 fi
-VERSION=$("$project_dir"/semver.py get)
+VERSION=$("$project_dir"/release.py get)
 
-TAG_PREFIX=$("$project_dir"/semver.py get-tag-prefix)
+TAG_PREFIX=$("$project_dir"/release.py get-tag-prefix)
 
 RELEASE_SEMVER="${VERSION}"
 DEBUG_SEMVER="${VERSION}-b${BUILD_NUMBER}"
@@ -68,7 +68,7 @@ if [[ $RP_SEMVER_INCLUDE_BUILD == 'true' ]]; then
   PRERELEASE_SEMVER="${PRERELEASE_SEMVER}+${BUILD}"
 fi
 
-CURRENT_VERSION=$("$project_dir"/semver.py get-current)
+CURRENT_VERSION=$("$project_dir"/release.py get-current)
 echo "... Current version: ${CURRENT_VERSION}, Release SemVer: ${RELEASE_SEMVER}"
 if [[ $release_type == 'prep' ]]; then
   echo "TAG=${TAG_PREFIX}${RELEASE_SEMVER}" > release.env
@@ -77,9 +77,9 @@ if [[ $release_type == 'prep' ]]; then
   echo "VERSION=${VERSION}" >> release.env
   echo "VERSION_CODE=${VERSION_CODE}" >> release.env
   echo "CURRENT_VERSION=${CURRENT_VERSION}" >> release.env
-  echo "VERSION_PATCH=$("$project_dir"/semver.py get-patch)" >> release.env
-  echo "VERSION_MINOR=$("$project_dir"/semver.py get-minor)" >> release.env
-  echo "VERSION_MAJOR=$("$project_dir"/semver.py get-major)" >> release.env
+  echo "VERSION_PATCH=$("$project_dir"/release.py get-patch)" >> release.env
+  echo "VERSION_MINOR=$("$project_dir"/release.py get-minor)" >> release.env
+  echo "VERSION_MAJOR=$("$project_dir"/release.py get-major)" >> release.env
   echo "BUILD_NUMBER=${BUILD_NUMBER}" >> release.env
   echo "BUILD=${BUILD}" >> release.env
   echo "RELEASE_SEMVER=${RELEASE_SEMVER}" >> release.env
@@ -97,9 +97,8 @@ echo "TAG_PREFIX: ${TAG_PREFIX}"
 echo "RP_SEMVER_BUILD_REF: ${RP_SEMVER_BUILD_REF}"
 echo "RP_BUMP: ${RP_BUMP}"
 echo "RP_LATEST_TAGGED_ANCESTOR_IGNORED: ${RP_LATEST_TAGGED_ANCESTOR_IGNORED}"
-echo "-----------------------------------------------"
 
-CURRENT_VERSION_DEPTH=$("$project_dir"/semver.py current-version-depth)
+CURRENT_VERSION_DEPTH=$("$project_dir"/release.py current-version-depth)
 echo "CURRENT_VERSION_DEPTH: ${CURRENT_VERSION_DEPTH}"
 echo "-----------------------------------------------"
 

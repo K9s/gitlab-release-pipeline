@@ -26,7 +26,7 @@ include:
         ARTIFACT=codequality-cache.sh eval "${CURL_CMD}"
         
         OUTPUT_FOLDER=
-        ARTIFACT=semver.py eval "${CURL_CMD}"
+        ARTIFACT=release.py eval "${CURL_CMD}"
         ARTIFACT=release.sh eval "${CURL_CMD}"
       fi
     - |
@@ -46,7 +46,7 @@ include:
 
       mv .config/codequality-cache.sh .
       chmod +x codequality-cache.sh
-      chmod +x semver.py
+      chmod +x release.py
       chmod +x release.sh
     - |
       #### Generating config.sh ####
@@ -124,7 +124,7 @@ gate:preconditions:
   artifacts:
     paths:
       - .config/*
-      - semver.py
+      - release.py
       - release.sh
       - codequality-cache.sh
       - config.sh

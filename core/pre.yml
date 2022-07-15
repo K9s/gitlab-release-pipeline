@@ -15,5 +15,5 @@ pull:setup:artifacts:
   artifacts:
     paths:
       - .config/*
-      - semver.py
+      - release.py
       - release.sh

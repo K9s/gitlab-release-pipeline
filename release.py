@@ -54,7 +54,7 @@ def parse_version(func):
     return wrapper_parse_version
 
 
-class SemVer:
+class Release:
     def __init__(self, path, app):
         self.repo = git.Repo(path, search_parent_directories=True)
         self.app = app
@@ -213,9 +213,9 @@ class SemVer:
         return next_version
 
     @parse_version
-    def can_bump_to(self,
-                    bump: str = 'patch',
-                    version: Union[Version, str, None] = None):
+    def bump(self,
+             bump: str = 'patch',
+             version: Union[Version, str, None] = None):
         if version is None:
             version = self.get_next_version(bump=bump, version=self.current_version)
 
@@ -250,63 +250,63 @@ class SemVer:
         return versions[-1]
 
 
-def dotenv(version: Version, semver):
+def dotenv(version: Version, release):
     lines = [
         f'VERSION={version.public}',
-        f'CURRENT_VERSION={semver.current_version}',
+        f'CURRENT_VERSION={release.current_version}',
         f'RELEASE_SEMVER={version}',
         f'VERSION_MAJOR={version.major}',
         f'VERSION_MINOR={version.minor}',
-        f'TAG_PREFIX={semver.tag_prefix}'
+        f'TAG_PREFIX={release.tag_prefix}'
     ]
     with open('semver.env', 'w') as f:
         f.writelines(line + '\n' for line in lines if line)
 
 
 if __name__ == "__main__":
-    semver = SemVer('.', app=os.getenv('APP'))
+    release = Release('.', app=os.getenv('APP'))
 
     SEMVER = os.getenv('SEMVER')
 
     BUILD = 1 if os.getenv("BUILD") == '' else os.getenv("BUILD", 1)
 
     if SEMVER:
-        __version = _parse_version(semver, version=SEMVER)
-        semver.build = __version.local if __version.local else BUILD
+        __version = _parse_version(release, version=SEMVER)
+        release.build = __version.local if __version.local else BUILD
     else:
         VERSION = os.getenv('VERSION')
         if VERSION == "$VERSION":
             VERSION = None
 
         if VERSION:
-            VERSION = _parse_version(semver, version=VERSION)
+            VERSION = _parse_version(release, version=VERSION)
             if not VERSION.local:
-                VERSION = _parse_version(semver, f'{VERSION.public}+{BUILD}')
+                VERSION = _parse_version(release, f'{VERSION.public}+{BUILD}')
 
             if os.getenv("BUILD") and os.getenv("BUILD") != VERSION.local:
                 raise EnvironmentError(
                     f'BUILD envar ({os.getenv("BUILD")}) conflicts with build from VERSION ({VERSION.local})'
                 )
 
-            semver.build = VERSION.local
+            release.build = VERSION.local
         else:
-            semver.build = BUILD
+            release.build = BUILD
 
         RP_BUMP = os.getenv('RP_BUMP', 'patch')
         if RP_BUMP == "$RP_BUMP":
             RP_BUMP = 'patch'
 
-        __version = semver.can_bump_to(bump=RP_BUMP,
-                                       version=VERSION)
+        __version = release.bump(bump=RP_BUMP,
+                                 version=VERSION)
 
     fire.Fire({
         'get': lambda: __version.public,
-        'get-build': lambda: semver.build,
-        'get-current': lambda: semver.current_version,
+        'get-build': lambda: release.build,
+        'get-current': lambda: release.current_version,
         'get-minor': lambda: __version.minor,
         'get-major': lambda: __version.major,
         'get-patch': lambda: __version.micro,
-        'get-tag-prefix': lambda: semver.tag_prefix,
-        'current-version-depth': lambda: semver.current_version_depth,
-        'gen-dotenv': lambda: dotenv(__version, semver)
+        'get-tag-prefix': lambda: release.tag_prefix,
+        'current-version-depth': lambda: release.current_version_depth,
+        'gen-dotenv': lambda: dotenv(__version, release)
     })

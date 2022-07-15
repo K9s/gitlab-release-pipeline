@@ -41,7 +41,7 @@ details.
 Ideally semver should be handled automatically or at least in an automated manner. This is especially true for
 PATCH versions where the act of 'releasing' a particular version should automatically result in a 'bump' of version.
 
-RP handles Semver via [semver.py](TODO) which is primarily used by the [`set:version`](TODO) job to determine
+RP handles Semver via [release.py](TODO) which is primarily used by the [`set:version`](TODO) job to determine
 current version, set version to release (the bump) and does various checks to ensure the version to be built/released
 is valid.
 
@@ -573,7 +573,7 @@ RP_GITLAB_RELEASE_PREFIX: '[Release]'
 
 TODO
 
-```s
+```
 #RP_CENTRAL_REGISTRY_PROJECT_ID:
 #RP_LINT_DISABLED:
 #RP_INTEGRATION_TRIGGER_ENABLED:
@@ -622,7 +622,7 @@ to [SemVer](https://semver.org/#semantic-versioning-specification-semver).
 Common to all:
 
 - `set:version` job will determine if the proposed next_version is a valid target (call can_bump_to() see
-  [semver.py](TODO)) which will ensure the version can be bumped to without violating semver rules or conflict
+  [release.py](TODO)) which will ensure the version can be bumped to without violating semver rules or conflict
   with existing releases (tags)
 - `set:version` will expose `VERSION`, `BUILD_NUMBER` and other envvars for use by build/test/publish jobs later in
   the pipeline. See [`set:version` job](TODO) for more details.
@@ -753,7 +753,7 @@ TODO
 
 ### Internals
 
-#### semver.py, release.sh and .config/*
+#### release.py, release.sh and .config/*
 
 TODO
 
