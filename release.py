@@ -129,16 +129,16 @@ class Release:
     @property
     def current_version(self):
         if self._current_version is None:
-            self._current_version = self.get_current_version()
+            self._current_version = self.get_version()
         return self._current_version
 
-    def get_current_version(self,
-                            target: Version = None,
-                            ref='HEAD',
-                            _register=None,
-                            _processed_refs=None,
-                            _depth=None,
-                            _current_depth=0):
+    def get_version(self,
+                    target: Version = None,
+                    ref='HEAD',
+                    _register=None,
+                    _processed_refs=None,
+                    _depth=None,
+                    _current_depth=0):
         if _depth is None:
             _depth = 0
 
@@ -170,19 +170,19 @@ class Release:
                     _depth += 1
 
                 for parent in _ref.parents:
-                    self.get_current_version(target=target,
-                                             ref=parent.hexsha,
-                                             _register=_register,
-                                             _processed_refs=_processed_refs,
-                                             _depth=_depth,
-                                             _current_depth=deepcopy(_depth))
+                    self.get_version(target=target,
+                                     ref=parent.hexsha,
+                                     _register=_register,
+                                     _processed_refs=_processed_refs,
+                                     _depth=_depth,
+                                     _current_depth=deepcopy(_depth))
             else:
                 _register[version] = _depth
 
         if ref == 'HEAD':
-            current_version = sorted(_register.keys())[-1]
-            self.current_version_depth = _register[current_version]
-            return current_version
+            version = sorted(_register.keys())[-1]
+            self.current_version_depth = _register[version]
+            return version
 
     @parse_version
     def get_next_version(self,
@@ -223,7 +223,7 @@ class Release:
 
         if versions and not RP_LATEST_TAGGED_ANCESTOR_IGNORED:
             latest_tagged_version = self.get_latest_version(bump=bump, version=versions[-1])
-            ancestor_version = self.get_current_version(target=latest_tagged_version)
+            ancestor_version = self.get_version(target=latest_tagged_version)
             if ancestor_version == Version('0.0.0rc0'):
                 raise EnvironmentError(f'Unable to {bump} bump {self.app} {self.current_version} to {version} '
                                        f'unless {latest_tagged_version} (Latest tagged version) is an ancestor.  '

@@ -150,12 +150,12 @@ def test_can_get_current_version():
     # Check to see that the last commit and repo HEAD are the same (sanity check)
     assert release.repo.commit('HEAD') == head
 
-    assert release.get_current_version() == get_expected_version('4.0.0')
+    assert release.get_version() == get_expected_version('4.0.0')
 
-    assert release.get_current_version(Version('0.1.15')) == get_expected_version('0.1.15')
-    assert release.get_current_version(Version('0.1.2')) == get_expected_version('0.1.2')
+    assert release.get_version(Version('0.1.15')) == get_expected_version('0.1.15')
+    assert release.get_version(Version('0.1.2')) == get_expected_version('0.1.2')
 
-    assert release.get_current_version(Version('0.0.0')) == Version('0.0.0rc')
+    assert release.get_version(Version('0.0.0')) == Version('0.0.0rc')
 
 
 def test_cannot_bump_out_of_order():
@@ -169,7 +169,7 @@ def test_cannot_bump_out_of_order():
     release.repo.index.commit('out-of-order commit')
 
     # Check that current version is as expected
-    assert release.get_current_version() == get_expected_version('0.1.2')
+    assert release.get_version() == get_expected_version('0.1.2')
 
     # Should not be able to bump due to 0.1.15 being a more recent version
     with pytest.raises(EnvironmentError, match=r'.*Unable to.*bump.*unless (0\.1\.15)'):
