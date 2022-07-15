@@ -3,7 +3,7 @@
 import os
 import sys
 from copy import deepcopy
-from typing import Union
+from typing import Union, List
 import functools
 
 import fire
@@ -15,7 +15,7 @@ from packaging.version import Version
 sys.setrecursionlimit(10000)
 
 
-def _version(func):
+def version(func):
     @functools.wraps(func)
     def wrapper_version(self, *args, **kwargs):
         if kwargs.get('version', None):
@@ -60,9 +60,9 @@ class Release:
 
         self.current_version = self.get_version()
 
-    def parse_version(self, version: Union[Version, str]):
+    def parse_version(self, version: Union[Version, str]) -> Version:
         if isinstance(version, Version):
-            ver = version
+            _version = version
         else:
             version_str = str(str(version).
                               replace(self.tag_prefix, '').
@@ -74,38 +74,37 @@ class Release:
 
             version_str = version_str.strip('.').strip('-')
 
-            ver = parse_semver(version_str)
+            _version = parse_semver(version_str)
 
-        if not isinstance(ver, Version) and not str(version).endswith('stable'):
-            raise Exception(f'Unable to parse version: {ver} as Version')
+        if not isinstance(_version, Version) and not str(version).endswith('stable'):
+            raise Exception(f'Unable to parse version: {_version} as Version')
 
-        return ver
+        return _version
 
-    @_version
+    @version
     def get_versions(self,
                      bump: str = 'major',
-                     version: Union[Version, str] = '0.0.0'):
+                     version: Union[Version, str] = '0.0.0') -> List[Version]:
         if bump == 'build':
-            _versions = [x for x in self.versions if
-                         x.major == version.major and x.minor == version.minor and x.micro == version.micro]
+            versions = [x for x in self.versions if
+                        x.major == version.major and x.minor == version.minor and x.micro == version.micro]
         elif bump == 'patch':
-            _versions = [x for x in self.versions if
-                         x.major == version.major and x.minor == version.minor]
+            versions = [x for x in self.versions if
+                        x.major == version.major and x.minor == version.minor]
         elif bump == 'minor':
-            _versions = [x for x in self.versions if
-                         x.major == version.major]
+            versions = [x for x in self.versions if
+                        x.major == version.major]
         elif bump == 'major':
-            _versions = self.versions
+            versions = self.versions
         else:
             raise Exception(f'Invalid bump: {bump}')
 
-        return deepcopy(_versions)
+        return deepcopy(versions)
 
-    @_version
+    @version
     def get_latest_version(self,
                            bump: str = 'major',
-                           version: Union[Version, str] = '0.0.0'):
-
+                           version: Union[Version, str] = '0.0.0') -> Version:
         _versions = self.get_versions(bump=bump, version=version)
 
         if not _versions:
@@ -126,7 +125,7 @@ class Release:
                     _register=None,
                     _processed_refs=None,
                     _depth=None,
-                    _current_depth=0):
+                    _current_depth=0) -> Union[Version, None]:
         if _depth is None:
             _depth = 0
 
@@ -139,7 +138,7 @@ class Release:
         try:
             _ref = self.repo.commit(ref)  # Catches situation where parent is part of a merge commit
         except ValueError:
-            return False
+            return None
 
         if _ref not in _processed_refs:
             _processed_refs.append(_ref)
@@ -173,10 +172,10 @@ class Release:
             return version
         return None
 
-    @_version
+    @version
     def get_next_version(self,
                          bump: str = 'patch',
-                         version: Union[Version, str] = '0.0.0'):
+                         version: Union[Version, str] = '0.0.0') -> Version:
         latest = self.get_latest_version(bump=bump, version=version)
 
         if bump == 'build':
@@ -201,10 +200,10 @@ class Release:
 
         return next_version
 
-    @_version
+    @version
     def get_bump_version(self,
                          bump: str = 'patch',
-                         version: Union[Version, str, None] = None):
+                         version: Union[Version, str, None] = None) -> Version:
         if version is None:
             version = self.get_next_version(bump=bump, version=self.current_version)
 
