@@ -8,5 +8,5 @@ variables:
 
 include:
   - project: $RP_TEMPLATE_PROJECT_NAMESPACE/$RP_TEMPLATE_PROJECT_NAME
-    ref: stable
+    ref: $CI_COMMIT_REF_NAME
     file: templates/docker-build.yml
