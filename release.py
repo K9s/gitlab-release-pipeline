@@ -213,9 +213,9 @@ class Release:
         return next_version
 
     @parse_version
-    def bump(self,
-             bump: str = 'patch',
-             version: Union[Version, str, None] = None):
+    def get_bump_version(self,
+                         bump: str = 'patch',
+                         version: Union[Version, str, None] = None):
         if version is None:
             version = self.get_next_version(bump=bump, version=self.current_version)
 
@@ -296,8 +296,8 @@ if __name__ == "__main__":
         if RP_BUMP == "$RP_BUMP":
             RP_BUMP = 'patch'
 
-        __version = release.bump(bump=RP_BUMP,
-                                 version=VERSION)
+        __version = release.get_bump_version(bump=RP_BUMP,
+                                             version=VERSION)
 
     fire.Fire({
         'get': lambda: __version.public,

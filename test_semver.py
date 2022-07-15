@@ -121,29 +121,29 @@ def test_can_get_next_version_major():
 
 def test_can_bump():
     # These versions already have tagged versions that would fail but don't because we're allowing the tag to exist
-    assert release.bump(bump='build', version=Version('0.0.3+20')) == Version('0.0.3+20')
-    assert release.bump(bump='build', version=Version('0.2.1+20')) == Version('0.2.1+20')
-    assert release.bump(bump='build', version=Version('4.0.0+20')) == Version('4.0.0+20')
+    assert release.get_bump_version(bump='build', version=Version('0.0.3+20')) == Version('0.0.3+20')
+    assert release.get_bump_version(bump='build', version=Version('0.2.1+20')) == Version('0.2.1+20')
+    assert release.get_bump_version(bump='build', version=Version('4.0.0+20')) == Version('4.0.0+20')
 
     with pytest.raises(EnvironmentError):
-        release.bump(bump='patch', version=Version('0.0.2'))  # Older then latest
-        release.bump(bump='minor', version=Version('0.0.4'))
-        release.bump(bump='major', version=Version('0.1.2'))
+        release.get_bump_version(bump='patch', version=Version('0.0.2'))  # Older then latest
+        release.get_bump_version(bump='minor', version=Version('0.0.4'))
+        release.get_bump_version(bump='major', version=Version('0.1.2'))
 
-        release.bump(bump='patch', version=Version('0.0.3'))
-        release.bump(bump='minor', version=Version('0.2.1'))
-        release.bump(bump='major', version=Version('4.0.0'))
+        release.get_bump_version(bump='patch', version=Version('0.0.3'))
+        release.get_bump_version(bump='minor', version=Version('0.2.1'))
+        release.get_bump_version(bump='major', version=Version('4.0.0'))
 
-    assert release.bump(bump='patch', version=Version('0.0.4')) == Version('0.0.4')  # Next patch version
-    assert release.bump(bump='patch', version=Version('0.0.5')) == Version('0.0.5')  # Newer then next patch version
-    assert release.bump(bump='patch', version=Version('0.1.20')) == Version('0.1.20')
-    assert release.bump(bump='minor', version=Version('0.2.4')) == Version('0.2.4')
-    assert release.bump(bump='major', version=Version('4.1.2')) == Version('4.1.2')
-    assert release.bump(bump='patch', version=Version('8.1.2')) == Version('8.1.2')
-    assert release.bump(bump='minor', version=Version('8.1.2')) == Version('8.1.2')
-    assert release.bump(bump='major', version=Version('8.1.2')) == Version('8.1.2')
+    assert release.get_bump_version(bump='patch', version=Version('0.0.4')) == Version('0.0.4')  # Next patch version
+    assert release.get_bump_version(bump='patch', version=Version('0.0.5')) == Version('0.0.5')  # Newer then next patch version
+    assert release.get_bump_version(bump='patch', version=Version('0.1.20')) == Version('0.1.20')
+    assert release.get_bump_version(bump='minor', version=Version('0.2.4')) == Version('0.2.4')
+    assert release.get_bump_version(bump='major', version=Version('4.1.2')) == Version('4.1.2')
+    assert release.get_bump_version(bump='patch', version=Version('8.1.2')) == Version('8.1.2')
+    assert release.get_bump_version(bump='minor', version=Version('8.1.2')) == Version('8.1.2')
+    assert release.get_bump_version(bump='major', version=Version('8.1.2')) == Version('8.1.2')
 
-    assert release.bump(bump='minor')
+    assert release.get_bump_version(bump='minor')
 
 
 def test_can_get_current_version():
@@ -173,7 +173,7 @@ def test_cannot_bump_out_of_order():
 
     # Should not be able to bump due to 0.1.15 being a more recent version
     with pytest.raises(EnvironmentError, match=r'.*Unable to.*bump.*unless (0\.1\.15)'):
-        release.bump(bump='patch', version='0.1.20')
+        release.get_bump_version(bump='patch', version='0.1.20')
 
     # Reset HEAD to main ref
     release.repo.head.reference = release.repo.commit('main')
