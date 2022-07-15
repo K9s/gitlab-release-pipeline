@@ -83,8 +83,8 @@ class Release:
 
     @version
     def get_versions(self,
-                     bump: str = 'major',
-                     version: Union[Version, str] = '0.0.0') -> List[Version]:
+                     version: Union[Version, str],
+                     bump: str = 'major') -> List[Version]:
         if bump == 'build':
             versions = [x for x in self.versions if
                         x.major == version.major and x.minor == version.minor and x.micro == version.micro]
@@ -103,8 +103,8 @@ class Release:
 
     @version
     def get_latest_version(self,
-                           bump: str = 'major',
-                           version: Union[Version, str] = '0.0.0') -> Version:
+                           version: Union[Version, str] = '0.0.0',
+                           bump: str = 'major') -> Version:
         _versions = self.get_versions(bump=bump, version=version)
 
         if not _versions:
@@ -174,8 +174,8 @@ class Release:
 
     @version
     def get_next_version(self,
-                         bump: str = 'patch',
-                         version: Union[Version, str] = '0.0.0') -> Version:
+                         version: Union[Version, str],
+                         bump: str = 'patch') -> Version:
         latest = self.get_latest_version(bump=bump, version=version)
 
         if bump == 'build':
@@ -205,9 +205,9 @@ class Release:
                          bump: str = 'patch',
                          version: Union[Version, str, None] = None) -> Version:
         if version is None:
-            version = self.get_next_version(bump=bump, version=self.current_version)
+            version = self.get_next_version(version=self.current_version, bump=bump)
 
-        versions = self.get_versions(bump=bump, version=self.get_next_version(bump=bump, version=version))
+        versions = self.get_versions(version=self.get_next_version(bump=bump, version=version), bump=bump)
 
         if versions and not os.getenv('RP_LATEST_TAGGED_ANCESTOR_IGNORED'):
             latest_tagged_version = self.get_latest_version(bump=bump, version=versions[-1])
