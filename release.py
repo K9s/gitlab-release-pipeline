@@ -15,11 +15,6 @@ import functools
 
 sys.setrecursionlimit(10000)
 
-TAG_PREFIX = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'")
-RP_IGNORE_ALREADY_TAGGED = os.getenv('RP_IGNORE_ALREADY_TAGGED', False)
-RP_LATEST_TAGGED_ANCESTOR_IGNORED = os.getenv('RP_LATEST_TAGGED_ANCESTOR_IGNORED', False)
-RP_RC_TAG_FIXUP_SUFFIXES = [x for x in os.getenv('RP_RC_TAG_FIXUP_SUFFIXES', '').split(',') if x]
-
 
 def _parse_version(self, version: Union[Version, str]):
     if isinstance(version, Version):
@@ -30,7 +25,7 @@ def _parse_version(self, version: Union[Version, str]):
                           replace('_', '+').
                           replace('bump-', ''))
 
-        for tag_cleanup in RP_RC_TAG_FIXUP_SUFFIXES:
+        for tag_cleanup in [x for x in os.getenv('RP_RC_TAG_FIXUP_SUFFIXES', '').split(',') if x]:
             version_str = version_str.replace(tag_cleanup, 'rc')
 
         version_str = version_str.strip('.').strip('-')
@@ -64,7 +59,7 @@ class Release:
         self.current_version_depth = 0
         self._current_version = None
 
-        self.tag_prefix = TAG_PREFIX.format(self=self)
+        self.tag_prefix = os.getenv('RP_TAG_PREFIX', '{self.app}-').strip('"').strip("'").format(self=self)
 
         self.build = 1
 
@@ -221,7 +216,7 @@ class Release:
 
         versions = self.get_versions(bump=bump, version=self.get_next_version(bump=bump, version=version))
 
-        if versions and not RP_LATEST_TAGGED_ANCESTOR_IGNORED:
+        if versions and not os.getenv('RP_LATEST_TAGGED_ANCESTOR_IGNORED', False):
             latest_tagged_version = self.get_latest_version(bump=bump, version=versions[-1])
             ancestor_version = self.get_version(target=latest_tagged_version)
             if ancestor_version == Version('0.0.0rc0'):
@@ -229,7 +224,7 @@ class Release:
                                        f'unless {latest_tagged_version} (Latest tagged version) is an ancestor.  '
                                        f'You probably need to rebase/branch from latest tagged version.')
 
-        if version in versions and not RP_IGNORE_ALREADY_TAGGED:
+        if version in versions and not os.getenv('RP_IGNORE_ALREADY_TAGGED', False):
             raise EnvironmentError(f'Unable to {bump} bump {self.app}. Version {version} has already been tagged!')
 
         versions.append(version)
@@ -296,8 +291,7 @@ if __name__ == "__main__":
         if RP_BUMP == "$RP_BUMP":
             RP_BUMP = 'patch'
 
-        __version = release.get_bump_version(bump=RP_BUMP,
-                                             version=VERSION)
+        __version = release.get_bump_version(bump=RP_BUMP, version=VERSION)
 
     fire.Fire({
         'get': lambda: __version.public,

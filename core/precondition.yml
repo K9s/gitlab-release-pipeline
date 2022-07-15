@@ -61,7 +61,7 @@ include:
       chmod +x config.sh
   script:
     - |
-      #### Checking SemVer ####
+      #### Validating Release PreReqs ####
       set -e
       
       ./config.sh
